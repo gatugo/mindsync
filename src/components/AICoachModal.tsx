@@ -570,14 +570,10 @@ export default function AICoachModal({
                                 setMode('chat');
                             }}
                             disabled={!question.trim() || isLoading}
-                            className="h-14 w-14 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
+                            className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
                             aria-label="Send Message"
                         >
-                            <img
-                                src="/send-icon.png"
-                                alt="Send"
-                                className="w-6 h-6 object-contain drop-shadow-md"
-                            />
+                            <Send className="w-6 h-6" />
                         </button>
                     </div>
 
