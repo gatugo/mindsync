@@ -37,7 +37,10 @@ Last Updated: January 20, 2026
 ## 🔜 Next Steps
 
 ### Phase 4: Polish & Auth
-- [ ] Fix AddTaskPanel mobile/tablet layout (stacking issue)
+- [x] Fix AddTaskPanel mobile/tablet layout (stacking issue)
+- [x] Navbar branding update & homepage link
+- [x] Kanban card actions visibility improvements (Mobile tap, Desktop always-visible)
+- [x] DatePicker mobile centered modal (fix overflow/cutoff issue)
 - [ ] Add user authentication (Supabase Auth)
 - [ ] Progressive Web App (PWA) install
 

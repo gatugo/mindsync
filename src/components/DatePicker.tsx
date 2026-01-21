@@ -17,6 +17,15 @@ export default function DatePicker({ value, onChange, placeholder = 'Select date
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const [coords, setCoords] = useState({ top: 0, left: 0, openAbove: false });
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Detect mobile viewport
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const today = new Date();
     const selectedDate = value ? new Date(value + 'T00:00:00') : null;
@@ -106,8 +115,9 @@ export default function DatePicker({ value, onChange, placeholder = 'Select date
                 <Portal>
                     <div className="fixed inset-0 z-[9990]" onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} />
                     <div
-                        className="fixed z-[9999] bg-slate-900 border border-white/10 rounded-xl shadow-2xl p-3 animate-in fade-in zoom-in-95 duration-150 w-[280px]"
-                        style={{ top: coords.top, left: coords.left, transform: 'translateX(-50%)' }}
+                        className={`fixed z-[9999] bg-slate-900 border border-white/10 rounded-xl shadow-2xl p-3 animate-in fade-in zoom-in-95 duration-150 w-[280px] ${isMobile ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85vh] overflow-y-auto' : ''
+                            }`}
+                        style={isMobile ? {} : { top: coords.top, left: coords.left, transform: 'translateX(-50%)' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}

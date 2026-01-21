@@ -81,7 +81,7 @@ export default function TaskCard({
             </p>
 
             {/* Actions Footer */}
-            <div className={`flex gap-2 mt-4 justify-end transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+            <div className={`flex gap-2 mt-4 justify-end transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
                 {onMoveBack && (
                     <button
                         onClick={(e) => { e.stopPropagation(); onMoveBack(); }}
