@@ -30,18 +30,20 @@ Last Updated: January 20, 2026
 - [x] Test on mobile device via network IP (Done by User)
 - [x] Deploy to Vercel for permanent URL
 - [x] Create demo video for colleagues
+- [x] Integrate Supabase for cloud data sync
 
 ---
 
 ## 🔜 Next Steps
 
-### Phase 3: Polish & Deploy
-- [x] All Phase 3 items completed this session!
+### Phase 4: Polish & Auth
+- [ ] Fix AddTaskPanel mobile/tablet layout (stacking issue)
+- [ ] Add user authentication (Supabase Auth)
+- [ ] Progressive Web App (PWA) install
 
 ### Future Enhancements
 - [ ] Streaming AI responses (word-by-word)
 - [ ] More natural language patterns ("this Friday", "in 30 min")
-- [ ] Progressive Web App (PWA) install
 - [ ] Push notifications for upcoming tasks
 
 ---

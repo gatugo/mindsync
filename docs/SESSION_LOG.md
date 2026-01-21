@@ -4,6 +4,32 @@ This file tracks conversation history and progress across sessions.
 
 ---
 
+## January 20, 2026 - Supabase Integration
+
+**Duration:** ~45 minutes  
+**Focus:** Cloud database integration for cross-device sync
+
+### Accomplished
+- **Supabase Setup:**
+    - Created Supabase project and configured environment variables
+    - Wrote SQL schema (`docs/supabase_setup.sql`) for `tasks`, `goals`, `daily_history` tables
+    - Fixed UUID mismatch issue (changed to TEXT IDs for compatibility)
+    - Enabled Row Level Security with anonymous access for MVP
+- **Code Changes:**
+    - Created `src/lib/supabase.ts` (Supabase client)
+    - Created `src/lib/api.ts` (API wrapper for DB operations)
+    - Refactored `src/store/useStore.ts` to sync all actions to cloud
+    - Updated `src/app/page.tsx` to fetch data on mount
+- **Verification:**
+    - Confirmed tasks sync to Supabase Table Editor
+    - Tested on localhost and deployed to Vercel with env vars
+
+### Next Steps
+- [ ] **Mobile UI Fix:** AddTaskPanel layout issues on narrow screens (plan ready)
+- [ ] Add user authentication for multi-user support
+
+---
+
 ## January 20, 2026 - Session Wrap-Up
 
 **Duration:** ~5 minutes
