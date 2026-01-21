@@ -173,88 +173,91 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                         </div>
                     )}
 
-                    {/* Details Row */}
-                    <div className="flex flex-wrap items-center gap-3">
+                    {/* Details Section - Responsive Layout */}
+                    <div className="flex flex-col gap-3">
+                        {/* Row 1: Type, Date, Time */}
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                            {/* Type Selector - uses Portal to escape stacking context */}
+                            <div className="relative">
+                                <button
+                                    ref={typeButtonRef}
+                                    type="button"
+                                    onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                                    className="flex items-center gap-2 bg-slate-900/50 hover:bg-slate-900/80 border border-white/5 rounded-lg px-3 py-2 text-sm text-white/90 transition-all"
+                                >
+                                    <span>{typeConfig[type].emoji}</span>
+                                    <span>{typeConfig[type].label}</span>
+                                    <ChevronDown className="w-3 h-3 text-white/50" />
+                                </button>
 
-                        {/* Type Selector - uses Portal to escape stacking context */}
-                        <div className="relative">
+                                {isTypeDropdownOpen && (
+                                    <Portal>
+                                        {/* Invisible backdrop to catch outside clicks */}
+                                        <div
+                                            className="fixed inset-0 z-[9990]"
+                                            onClick={(e) => { e.stopPropagation(); setIsTypeDropdownOpen(false); }}
+                                        />
+                                        {/* Dropdown menu rendered at document.body level */}
+                                        <div
+                                            className="fixed z-[9999] bg-slate-800 border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
+                                            style={{ top: coords.top, left: coords.left }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {(Object.keys(typeConfig) as TaskType[]).map((t) => (
+                                                <button
+                                                    key={t}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setType(t);
+                                                        setIsTypeDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-white/10 text-sm text-white/80 ${type === t ? 'bg-white/10' : ''}`}
+                                                >
+                                                    <span>{typeConfig[t].emoji}</span>
+                                                    <span>{typeConfig[t].label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </Portal>
+                                )}
+                            </div>
+
+                            <div className="hidden sm:block h-4 w-px bg-white/10" />
+
+                            {/* Date Picker Wrapper */}
+                            <div className="flex-1 min-w-[120px] max-w-[140px]">
+                                <DatePicker value={date} onChange={setDate} placeholder="Today" />
+                            </div>
+
+                            {/* Time Picker Wrapper */}
+                            <div className="flex-1 min-w-[100px] max-w-[120px]">
+                                <TimePicker value={time} onChange={setTime} placeholder="Any time" />
+                            </div>
+                        </div>
+
+                        {/* Row 2: AI Button + Add Task */}
+                        <div className="flex items-center justify-between gap-3">
+                            {/* AI Assist Button */}
                             <button
-                                ref={typeButtonRef}
                                 type="button"
-                                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                                className="flex items-center gap-2 bg-slate-900/50 hover:bg-slate-900/80 border border-white/5 rounded-lg px-3 py-1.5 text-sm text-white/90 transition-all"
+                                onClick={handleAIAssist}
+                                disabled={isAILoading || !title.trim()}
+                                title="AI Schedule Assist"
+                                className="p-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-purple-500/20"
                             >
-                                <span>{typeConfig[type].emoji}</span>
-                                <span>{typeConfig[type].label}</span>
-                                <ChevronDown className="w-3 h-3 text-white/50" />
+                                {isAILoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Bot className="w-4 h-4" />
+                                )}
                             </button>
 
-                            {isTypeDropdownOpen && (
-                                <Portal>
-                                    {/* Invisible backdrop to catch outside clicks */}
-                                    <div
-                                        className="fixed inset-0 z-[9990]"
-                                        onClick={(e) => { e.stopPropagation(); setIsTypeDropdownOpen(false); }}
-                                    />
-                                    {/* Dropdown menu rendered at document.body level */}
-                                    <div
-                                        className="fixed z-[9999] bg-slate-800 border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
-                                        style={{ top: coords.top, left: coords.left }}
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        {(Object.keys(typeConfig) as TaskType[]).map((t) => (
-                                            <button
-                                                key={t}
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setType(t);
-                                                    setIsTypeDropdownOpen(false);
-                                                }}
-                                                className={`w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-white/10 text-sm text-white/80 ${type === t ? 'bg-white/10' : ''}`}
-                                            >
-                                                <span>{typeConfig[t].emoji}</span>
-                                                <span>{typeConfig[t].label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </Portal>
-                            )}
-                        </div>
-
-                        <div className="h-4 w-px bg-white/10 mx-1" />
-
-                        {/* Date Picker Wrapper */}
-                        <div className="w-32">
-                            <DatePicker value={date} onChange={setDate} placeholder="Today" />
-                        </div>
-
-                        {/* Time Picker Wrapper */}
-                        <div className="w-28">
-                            <TimePicker value={time} onChange={setTime} placeholder="Any time" />
-                        </div>
-
-                        {/* AI Assist Button */}
-                        <button
-                            type="button"
-                            onClick={handleAIAssist}
-                            disabled={isAILoading || !title.trim()}
-                            title="AI Schedule Assist"
-                            className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-purple-500/20"
-                        >
-                            {isAILoading ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Bot className="w-4 h-4" />
-                            )}
-                        </button>
-
-                        {/* Add Button (Far Right) */}
-                        <div className="flex-1 flex justify-end">
+                            {/* Add Button */}
                             <button
                                 type="submit"
                                 disabled={!title.trim()}
-                                className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                                className="flex-1 sm:flex-none bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5"
                             >
                                 <Plus className="w-4 h-4" />
                                 <span>Add Task</span>
