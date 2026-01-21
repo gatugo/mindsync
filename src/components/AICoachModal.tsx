@@ -532,6 +532,11 @@ export default function AICoachModal({
                                 type="text"
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
+                                onFocus={() => {
+                                    if (mode !== 'chat') {
+                                        setMode('chat');
+                                    }
+                                }}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
@@ -541,8 +546,7 @@ export default function AICoachModal({
                                         }
                                     }
                                 }}
-                                placeholder={mode === 'chat' ? "Type a message..." : "Switch to chat to ask questions..."}
-                                disabled={mode !== 'chat'}
+                                placeholder="Type a message or ask a question..."
                                 className="w-full h-14 bg-slate-800/50 border border-slate-700/50 rounded-2xl px-5 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all font-medium"
                             />
                             {/* Natural Language Preview */}
