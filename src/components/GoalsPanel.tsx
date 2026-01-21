@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 import { Goal } from '@/store/useStore';
+import DatePicker from './DatePicker';
+import TimePicker from './TimePicker';
 
 interface GoalsPanelProps {
     goals: Goal[];
@@ -132,24 +134,16 @@ export default function GoalsPanel({
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="relative">
-                            <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">calendar_today</span>
-                            <input
-                                type="date"
-                                value={newDate}
-                                onChange={(e) => setNewDate(e.target.value)}
-                                className="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-3 pl-10 pr-2 text-xs focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                            />
-                        </div>
-                        <div className="relative">
-                            <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">schedule</span>
-                            <input
-                                type="time"
-                                value={newTime}
-                                onChange={(e) => setNewTime(e.target.value)}
-                                className="w-full bg-white dark:bg-slate-900 border-none rounded-xl py-3 pl-10 pr-2 text-xs focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                            />
-                        </div>
+                        <DatePicker
+                            value={newDate}
+                            onChange={setNewDate}
+                            placeholder="dd/mm/yyyy"
+                        />
+                        <TimePicker
+                            value={newTime}
+                            onChange={setNewTime}
+                            placeholder="--:-- --"
+                        />
                     </div>
                     <div className="flex gap-3 pt-2">
                         <button
@@ -183,17 +177,15 @@ export default function GoalsPanel({
                                     className="w-full bg-white dark:bg-slate-900 border-none rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
                                 />
                                 <div className="flex gap-2">
-                                    <input
-                                        type="date"
+                                    <DatePicker
                                         value={editDate}
-                                        onChange={(e) => setEditDate(e.target.value)}
-                                        className="flex-1 bg-white dark:bg-slate-900 border-none rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                        onChange={setEditDate}
+                                        placeholder="dd/mm/yyyy"
                                     />
-                                    <input
-                                        type="time"
+                                    <TimePicker
                                         value={editTime}
-                                        onChange={(e) => setEditTime(e.target.value)}
-                                        className="flex-1 bg-white dark:bg-slate-900 border-none rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                        onChange={setEditTime}
+                                        placeholder="--:-- --"
                                     />
                                 </div>
                                 <div className="flex justify-end gap-2">

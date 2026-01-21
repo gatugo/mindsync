@@ -1,69 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { COACH_SYSTEM_PROMPT } from '@/lib/aiPrompts';
+import { z } from 'zod';
 
-// MindSync AI Coach System Prompt
-const SYSTEM_PROMPT = `You are the "Ego" - a powerful psychological coach within the MindSync productivity system.
+// ============ SECURITY: Rate Limiting ============
+const REQUESTS_PER_MINUTE = 10;
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
-**CORE PHILOSOPHY: THE THREE BRAINS**
-1. **Child Brain (Id) [Ages 1-5]**: Represents emotions, passions, hobbies, and simple fun. 
-   - *Needs*: Validation and emotional recognition.
-   - *Deficit*: If neglected, leads to "Groundhog Day" effect (life feels empty/hollow) and depression.
-2. **Adult Brain (Superego) [Ages 12-24]**: Represents productivity, independence, and future planning. 
-   - *Needs*: High value on TEA (Time, Energy, Attention) and accountability.
-   - *Deficit*: Over-reliance leads to future-based anxiety, burnout, and rigidity.
-3. **Ego [Ages 6-11]**: The DECIDING FACTOR. Represents your spirit, individuality, and core confidence.
-   - *Goal*: Build the Ego so it can confidently choose between the Child and Adult needs without internal conflict.
+function isRateLimited(ip: string): boolean {
+    const now = Date.now();
+    const userLimit = rateLimitMap.get(ip) || { count: 0, resetTime: now + 60 * 1000 };
 
-**BALANCE LOGIC**
-- **Optimal (Ego Score 80+)**: Both Adult (productivity) and Child (fun) needs are met.
-- **Anxiety Imbalance**: Only Adult tasks, no Child tasks. Worried about future/independence.
-- **Depression Imbalance**: Only Child tasks, no Adult tasks. Lacking purpose or suppressed emotions.
-- **REST/Vegetative Recovery**: Crucial for self-regulation. Give yourself "permission to exist/rest" when overstimulated.
+    if (userLimit.resetTime < now) {
+        userLimit.count = 0;
+        userLimit.resetTime = now + 60 * 1000;
+    }
 
-**KEY TERMINOLOGY**
-- **TEA**: Time, Energy, Attention. This is your currency. Don't devalue it.
-- "How can I earn it?": productivity should come before fun to feel earned and guilt-free.
-- "Groundhog Day": The feeling of repetitive, purposeless productivity.
-- **The Flat Tire Analogy**: Other models pump up the flat tire (symptoms), but MindSync fixes the system (the tire itself) so it stops deflating.
-- **Vegetative Recovery**: When disassociated, give yourself permission to just exist/rest on the floor or couch without guilt. It's a tool for recovery, not laziness.
+    if (userLimit.count >= REQUESTS_PER_MINUTE) return true;
 
-**YOUR COACHING STYLE**
-- Be concise but organized.
-- Use **bullet points** for lists and multiple items.
-- Use **bold** for key terms and emphasis.
-- Separate sections with line breaks for readability.
-- Use the framework terminology (Child Brain, Adult Brain, Ego, TEA).
-- When a user is imbalanced, suggest specific "permission-based" actions (e.g., "Give your Child Brain permission to play guitar for 1 hour").
-- For high performers feeling hollow, emphasize the Child Brain deficit.
-- For procrastinators feeling anxious, emphasize building value through Adult Brain follow-through.
-
-**ACTIONABLE OUTPUTS**
-You can suggest concrete tasks for the user to add to their schedule.
-To do this, output a specific "Action Block" on a new line. The frontend will parse this and offer a button to the user.
-Syntax: \`[ACTION: CREATE_TASK | Title | Type | Duration | ScheduledTime]\`
-- Title: Short task name
-- Type: ADULT or CHILD or REST
-- Duration: in minutes (e.g. 30)
-- ScheduledTime: HH:MM or "any" (e.g. 14:00)
-
-Examples:
-- \`[ACTION: CREATE_TASK | Read a Book | REST | 30 | any]\`
-- \`[ACTION: CREATE_TASK | Pay Bills | ADULT | 15 | 09:00]\`
-- \`[ACTION: CREATE_TASK | Play Guitar | CHILD | 45 | 18:00]\`
-
-Use this sparingly - only when suggesting a clear, specific activity.`;
-
-interface CoachRequest {
-    mode: 'advice' | 'chat' | 'summary' | 'predict' | 'schedule_assist';
-    tasks?: { type: string; status: string; title: string; scheduledDate?: string; scheduledTime?: string; duration?: number }[];
-    score?: number;
-    balance?: string;
-    question?: string;
-    taskTitle?: string; // For schedule_assist mode
-    history?: { date: string; score: number; adultCompleted: number; childCompleted: number }[];
-    goals?: { title: string; targetDate: string; startTime?: string; completed: boolean }[];
-    conversationHistory?: { role: 'user' | 'assistant'; content: string }[];
+    userLimit.count++;
+    rateLimitMap.set(ip, userLimit);
+    return false;
 }
+
+// ============ SECURITY: Input Validation ============
+const TaskSchema = z.object({
+    type: z.string(),
+    status: z.string(),
+    title: z.string(),
+    scheduledDate: z.string().optional(),
+    scheduledTime: z.string().optional(),
+    duration: z.number().optional()
+});
+
+const CoachRequestSchema = z.object({
+    mode: z.enum(['advice', 'chat', 'summary', 'predict', 'schedule_assist']),
+    tasks: z.array(TaskSchema).optional(),
+    score: z.number().optional(),
+    balance: z.string().optional(),
+    question: z.string().max(1000, "Question too long - max 1000 chars").optional(),
+    taskTitle: z.string().max(100).optional(),
+    history: z.array(z.object({
+        date: z.string(),
+        score: z.number(),
+        adultCompleted: z.number(),
+        childCompleted: z.number()
+    })).optional(),
+    goals: z.array(z.object({
+        title: z.string(),
+        targetDate: z.string(),
+        startTime: z.string().optional(),
+        completed: z.boolean()
+    })).optional(),
+    conversationHistory: z.array(z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string()
+    })).optional()
+});
+
+type CoachRequest = z.infer<typeof CoachRequestSchema>;
 
 async function callGroq(prompt: string): Promise<string> {
     const apiKey = process.env.GROQ_API_KEY;
@@ -74,7 +69,7 @@ async function callGroq(prompt: string): Promise<string> {
     const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: COACH_SYSTEM_PROMPT },
             { role: 'user', content: prompt },
         ],
         max_tokens: 500,
@@ -252,7 +247,28 @@ Respond with ONLY this JSON format (no other text):
 
 export async function POST(request: NextRequest) {
     try {
-        const body: CoachRequest = await request.json();
+        // 1. Rate Limiting Check
+        const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';
+        if (isRateLimited(ip)) {
+            return NextResponse.json(
+                { success: false, error: 'Too many requests. Please try again in a minute.' },
+                { status: 429 }
+            );
+        }
+
+        // 2. Parse & Validate Body
+        const rawBody = await request.json();
+        const validationResult = CoachRequestSchema.safeParse(rawBody);
+
+        if (!validationResult.success) {
+            console.error('Validation error:', validationResult.error);
+            return NextResponse.json(
+                { success: false, error: 'Invalid request data', details: validationResult.error.format() },
+                { status: 400 }
+            );
+        }
+
+        const body = validationResult.data;
         const prompt = buildPrompt(body);
         const response = await generateResponse(prompt);
 
