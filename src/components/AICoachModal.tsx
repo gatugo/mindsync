@@ -526,27 +526,31 @@ export default function AICoachModal({
 
                 {/* Chat Input (always visible for ease of access, but meaningful mainly for chat) */}
                 <div className="p-4 border-t border-white/10">
-                    <div className="flex gap-2">
-                        <div className="flex-1">
+                    <div className="flex gap-3 items-stretch">
+                        <div className="flex-1 relative">
                             <input
                                 type="text"
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && question.trim()) {
-                                        handleAskCoach('chat');
-                                        setMode('chat');
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (question.trim()) {
+                                            handleAskCoach('chat');
+                                            setMode('chat');
+                                        }
                                     }
                                 }}
-                                placeholder={mode === 'chat' ? "Try: 'Schedule gym tomorrow at 5pm'" : "Switch to chat to ask questions..."}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                placeholder={mode === 'chat' ? "Type a message..." : "Switch to chat to ask questions..."}
+                                disabled={mode !== 'chat'}
+                                className="w-full h-14 bg-slate-800/50 border border-slate-700/50 rounded-2xl px-5 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all font-medium"
                             />
                             {/* Natural Language Preview */}
                             {question.trim() && (() => {
                                 const parsed = parseNaturalDateTime(question);
                                 if (parsed.date || parsed.time) {
                                     return (
-                                        <div className="mt-2 text-xs text-indigo-300 flex items-center gap-2">
+                                        <div className="absolute bottom-2 left-5 text-xs text-indigo-300 flex items-center gap-2">
                                             <Sparkles className="w-3 h-3" />
                                             <span>
                                                 Detected: {parsed.date && `${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
@@ -559,18 +563,20 @@ export default function AICoachModal({
                                 return null;
                             })()}
                         </div>
+
                         <button
                             onClick={() => {
                                 handleAskCoach('chat');
                                 setMode('chat');
                             }}
                             disabled={!question.trim() || isLoading}
-                            className="px-4 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 flex items-center justify-center self-stretch"
+                            className="h-14 w-14 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
+                            aria-label="Send Message"
                         >
                             <img
                                 src="/send-icon.png"
                                 alt="Send"
-                                className="w-5 h-5 object-contain"
+                                className="w-6 h-6 object-contain drop-shadow-md"
                             />
                         </button>
                     </div>
