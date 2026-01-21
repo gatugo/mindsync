@@ -565,7 +565,7 @@ export default function AICoachModal({
                                 setMode('chat');
                             }}
                             disabled={!question.trim() || isLoading}
-                            className="px-4 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors self-start"
+                            className="px-4 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 flex items-center justify-center self-stretch"
                         >
                             <img
                                 src="/send-icon.png"
