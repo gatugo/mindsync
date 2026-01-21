@@ -52,9 +52,11 @@ export default function Home() {
     _hasHydrated,
   } = useStore();
 
-  // Hydration
+  // Hydration / Data Fetching
+  const { fetchInitialData } = useStore();
+
   useEffect(() => {
-    useStore.persist.rehydrate();
+    fetchInitialData();
   }, []);
 
   // Dropdown click-away listener
