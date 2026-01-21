@@ -141,8 +141,12 @@ This file tracks conversation history and progress across sessions.
 - **Vercel Deployment:** Successfully deployed to Vercel.
     - **Live URL:** [https://mindsync-topaz.vercel.app/](https://mindsync-topaz.vercel.app/)
     - **Repo:** [https://github.com/gatugo/mindsync](https://github.com/gatugo/mindsync)
+- **Repo Privacy:** Updated `.gitignore` to hide `.agent`, `.vscode`, `stitch`, and `screenshots` folders.
+- **Demo Assets:** 
+    - Created `docs/DEMO_SCRIPT.md`.
+    - Organized demo video into `docs/demo/mindsync_demo.mp4`.
 
 ### Next Steps
-- **Mobile Testing:** Verify live site on mobile devices.
-- **Demo Video:** Create a demo video.
+- **Mobile Testing:** Verify live site on mobile devices (User).
+- **Social Sharing:** Prepare launch posts (Optional).
 
