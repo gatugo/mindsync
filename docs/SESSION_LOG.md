@@ -4,6 +4,28 @@ This file tracks conversation history and progress across sessions.
 
 ---
 
+## January 20, 2026 - Session Wrap-Up
+
+**Duration:** ~5 minutes
+**Focus:** Final housekeeping, repository privacy, and demo asset organization.
+
+### Accomplished
+- **Repository Privacy:**
+    - Updated `.gitignore` to protect internal files (`.agent`, `.vscode`).
+    - Hid purely internal documentation folders (`docs/stitch`, `docs/screenshots`).
+    - Removed `docs/demo/` from the public repo to keep the codebase lightweight (demo video stored locally).
+- **Documentation:**
+    - Updated `docs/TASKS.md` with final session notes.
+    - Finalized `docs/DEMO_SCRIPT.md`.
+    - Created walkthrough artifact for demo video review.
+- **Git State:**
+    - Confirmed repository is clean and fully pushed to `origin/main`.
+
+### Next Steps
+- **Marketing:** Share the demo video.
+- **Feedback:** Watch for user feedback on the deployed Vercel app.
+
+
 ## January 20, 2026 - Mobile Responsiveness & AI Formatting
 
 **Duration:** ~30 minutes  
