@@ -16,7 +16,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 export default function DatePicker({ value, onChange, placeholder = 'Select date' }: DatePickerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [coords, setCoords] = useState({ top: 0, left: 0 });
+    const [coords, setCoords] = useState({ top: 0, left: 0, openAbove: false });
 
     const today = new Date();
     const selectedDate = value ? new Date(value + 'T00:00:00') : null;
@@ -27,9 +27,19 @@ export default function DatePicker({ value, onChange, placeholder = 'Select date
         const updatePosition = () => {
             if (isOpen && containerRef.current) {
                 const rect = containerRef.current.getBoundingClientRect();
+                const dropdownHeight = 320; // Approximate height of the calendar
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+
+                // If not enough space below, open above
+                const openAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+
                 setCoords({
-                    top: rect.bottom + window.scrollY + 4,
-                    left: rect.left + window.scrollX + (rect.width / 2)
+                    top: openAbove
+                        ? rect.top + window.scrollY - dropdownHeight - 4
+                        : rect.bottom + window.scrollY + 4,
+                    left: rect.left + window.scrollX + (rect.width / 2),
+                    openAbove
                 });
             }
         };
