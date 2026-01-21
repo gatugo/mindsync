@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Task, TaskType } from '@/store/useStore';
 
 interface TaskCardProps {
@@ -34,10 +35,13 @@ export default function TaskCard({
     isDone = false,
 }: TaskCardProps) {
     const config = typeConfig[task.type];
+    const [isExpanded, setIsExpanded] = useState(false);
 
     return (
         <div
             onDoubleClick={onEdit}
+            onClick={() => setIsExpanded(!isExpanded)}
+            onMouseLeave={() => setIsExpanded(false)}
             className={`task-card-hover group relative bg-white/5 border border-slate-700/50 p-4 rounded-2xl cursor-pointer transition-all duration-300 hover:border-[#5c67ff]/40 ${isDone ? 'opacity-70 grayscale-[0.5] hover:grayscale-0 hover:opacity-100' : ''
                 }`}
         >
@@ -50,18 +54,25 @@ export default function TaskCard({
                     {config.label}
                 </span>
 
-                {(task.scheduledDate || task.scheduledTime) && (
-                    <span className="text-[10px] font-medium text-slate-400">
-                        {task.scheduledDate && (
-                            <>
-                                {new Date(task.scheduledDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                            </>
-                        )}
-                        {task.scheduledTime && (
-                            <> • {format12h(task.scheduledTime)}</>
-                        )}
+                <div className="flex items-center gap-2">
+                    {/* Mobile "More" Indicator - visible only on small screens when not expanded */}
+                    <span className={`sm:hidden text-slate-600 transition-opacity ${isExpanded ? 'opacity-0' : 'opacity-100'}`}>
+                        <span className="material-icons-round text-base">more_horiz</span>
                     </span>
-                )}
+
+                    {(task.scheduledDate || task.scheduledTime) && (
+                        <span className="text-[10px] font-medium text-slate-400">
+                            {task.scheduledDate && (
+                                <>
+                                    {new Date(task.scheduledDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </>
+                            )}
+                            {task.scheduledTime && (
+                                <> • {format12h(task.scheduledTime)}</>
+                            )}
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Content: Title */}
@@ -69,8 +80,8 @@ export default function TaskCard({
                 {task.title}
             </p>
 
-            {/* Actions Footer - Visible on Hover */}
-            <div className="task-actions opacity-0 group-hover:opacity-100 flex gap-2 mt-4 justify-end transition-opacity">
+            {/* Actions Footer */}
+            <div className={`flex gap-2 mt-4 justify-end transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                 {onMoveBack && (
                     <button
                         onClick={(e) => { e.stopPropagation(); onMoveBack(); }}
