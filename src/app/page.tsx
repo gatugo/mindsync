@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useSyncExternalStore, useRef } from 'react';
+import Link from 'next/link';
 import { useStore, TaskType, Task } from '@/store/useStore';
 import AddTaskPanel from '@/components/AddTaskPanel';
 import CollapsibleColumn from '@/components/CollapsibleColumn';
@@ -137,7 +138,7 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 py-4">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
             <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
               <span className="material-icons-round text-2xl">psychology</span>
             </div>
@@ -145,7 +146,7 @@ export default function Home() {
               <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">MindSync</h1>
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] hidden md:block">Sync. Focus. Flow.</p>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
             {/* Score Badge */}
