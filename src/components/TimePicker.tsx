@@ -13,7 +13,7 @@ interface TimePickerProps {
 export default function TimePicker({ value, onChange, placeholder = 'Select time' }: TimePickerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [coords, setCoords] = useState({ top: 0, left: 0 });
+    const [coords, setCoords] = useState({ top: 0, left: 0, openAbove: false });
 
     const parseTime = (timeStr: string) => {
         if (!timeStr) return { hour: 12, minute: 0, period: 'PM' };
@@ -48,9 +48,19 @@ export default function TimePicker({ value, onChange, placeholder = 'Select time
         const updatePosition = () => {
             if (isOpen && containerRef.current) {
                 const rect = containerRef.current.getBoundingClientRect();
+                const dropdownHeight = 180; // Approximate height of the picker
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+
+                // If not enough space below, open above
+                const openAbove = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+
                 setCoords({
-                    top: rect.bottom + window.scrollY + 8,
-                    left: rect.left + window.scrollX
+                    top: openAbove
+                        ? rect.top + window.scrollY - dropdownHeight - 8
+                        : rect.bottom + window.scrollY + 8,
+                    left: rect.left + window.scrollX + (rect.width / 2),
+                    openAbove
                 });
             }
         };
@@ -84,7 +94,7 @@ export default function TimePicker({ value, onChange, placeholder = 'Select time
                 <Portal>
                     <div className="fixed inset-0 z-[9990]" onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} />
                     <div
-                        className="fixed z-[9999] bg-slate-900 border border-white/10 rounded-xl shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-150"
+                        className="fixed z-[9999] bg-slate-900 border border-white/10 rounded-xl shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-150 max-h-[200px] overflow-y-auto"
                         style={{ top: coords.top, left: coords.left, transform: 'translateX(-50%)' }}
                         onClick={(e) => e.stopPropagation()}
                     >
