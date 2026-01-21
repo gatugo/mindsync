@@ -44,6 +44,9 @@ Last Updated: January 20, 2026
 - [x] AI Coach: Enhance system prompt with "The Three Brains" philosophy
 - [x] AI Coach: Refactor prompts into `src/lib/aiPrompts.ts`
 - [x] AI Coach: Fix production validation error (relax Zod schema)
+- [x] AI Coach: Add User Personalization (Hobbies/Interests) & Explicit Scheduling Confirmation
+- [x] UI Polish: Premium "Send" button & Active Chat Input
+- [x] Codebase Anonymization: Replaced hardcoded personal data with generic defaults & `.env.local` support
 - [ ] Add user authentication (Supabase Auth)
 - [ ] Progressive Web App (PWA) install
 

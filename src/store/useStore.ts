@@ -2,6 +2,16 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api';
 
+const getPreferencesFromEnv = (key: string, defaults: string[]): string[] => {
+    try {
+        const envValue = process.env[key];
+        return envValue ? JSON.parse(envValue) : defaults;
+    } catch (e) {
+        console.warn(`Failed to parse preference from env: ${key}`, e);
+        return defaults;
+    }
+};
+
 // ============ TYPES ============
 export type TaskType = 'ADULT' | 'CHILD' | 'REST';
 export type TaskStatus = 'TODO' | 'START' | 'DONE';
@@ -97,9 +107,9 @@ export const useStore = create<StoreState>((set, get) => ({
     goals: [],
     _hasHydrated: false,
     preferences: {
-        hobbies: ['Competitive Gaming (Fortnite)', 'Content Creation & Personal Branding'],
-        interests: ['Home Lab & Self-Hosting', 'Digital Privacy & Security Research'],
-        passions: ['AI Engineering & Agentic Workflows', 'Full-Stack Web Development']
+        hobbies: getPreferencesFromEnv('NEXT_PUBLIC_USER_HOBBIES', ['Reading', 'Hiking', 'Gaming']),
+        interests: getPreferencesFromEnv('NEXT_PUBLIC_USER_INTERESTS', ['Technology', 'Art', 'Music']),
+        passions: getPreferencesFromEnv('NEXT_PUBLIC_USER_PASSIONS', ['Learning', 'Creativity'])
     },
 
     fetchInitialData: async () => {
