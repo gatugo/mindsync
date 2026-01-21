@@ -40,3 +40,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# User-specific & Private
+.agent/
+*.code-workspace
+.vscode/
+.gemini/
+
+# Design Assets & Screenshots
+docs/stitch/
+docs/screenshots/
