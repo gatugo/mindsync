@@ -1,4 +1,4 @@
-# Project: Brain Balance App
+# Project: MindSync App
 
 **Goal:** A "Second Brain" psychological task management system that helps users balance Adult (work/responsibility), Child (play/creativity), and Rest activities for optimal mental health.
 

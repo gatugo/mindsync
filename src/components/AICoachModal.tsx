@@ -388,7 +388,7 @@ export default function AICoachModal({
                         </div>
                         <div>
                             <h2 className="font-bold text-white">AI Coach</h2>
-                            <p className="text-xs text-white/50">Your Brain Balance guide</p>
+                            <p className="text-xs text-white/50">Your MindSync guide</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

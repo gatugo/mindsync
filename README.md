@@ -1,4 +1,4 @@
-# Brain Balance
+# MindSync
 
 A psychological task management system that helps you balance **Adult** (work/responsibility), **Child** (play/creativity), and **Rest** activities for optimal mental health.
 

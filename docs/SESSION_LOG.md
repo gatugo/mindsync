@@ -1,4 +1,4 @@
-# Brain Balance - Session Log
+# MindSync - Session Log
 
 This file tracks conversation history and progress across sessions.
 

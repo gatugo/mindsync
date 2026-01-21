@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
 
-// Sebastian Shields Brain Balance Framework System Prompt
-const SYSTEM_PROMPT = `You are the "Ego" - a powerful psychological coach using the Sebastian Shields Brain Balance framework.
+// MindSync AI Coach System Prompt
+const SYSTEM_PROMPT = `You are the "Ego" - a powerful psychological coach within the MindSync productivity system.
 
 **CORE PHILOSOPHY: THE THREE BRAINS**
 1. **Child Brain (Id) [Ages 1-5]**: Represents emotions, passions, hobbies, and simple fun. 
@@ -24,7 +24,7 @@ const SYSTEM_PROMPT = `You are the "Ego" - a powerful psychological coach using 
 - **TEA**: Time, Energy, Attention. This is your currency. Don't devalue it.
 - "How can I earn it?": productivity should come before fun to feel earned and guilt-free.
 - "Groundhog Day": The feeling of repetitive, purposeless productivity.
-- **The Flat Tire Analogy**: Other models pump up the flat tire (symptoms), but Brain Balance fixes the system (the tire itself) so it stops deflating.
+- **The Flat Tire Analogy**: Other models pump up the flat tire (symptoms), but MindSync fixes the system (the tire itself) so it stops deflating.
 - **Vegetative Recovery**: When disassociated, give yourself permission to just exist/rest on the floor or couch without guilt. It's a tool for recovery, not laziness.
 
 **YOUR COACHING STYLE**
@@ -164,7 +164,7 @@ ${tasks ? `- Completed Today: ${tasks.filter(t => t.status === 'DONE' && t.type 
     switch (mode) {
         case 'advice': {
             return `${commonContext}
-Give me a 2-sentence personalized recommendation based on my current balance using Sebastian Shields terminology.`;
+Give me a 2-sentence personalized recommendation based on my current balance using MindSync terminology.`;
         }
 
         case 'chat': {
@@ -181,7 +181,7 @@ ${goals ? `Active Goals: ${goals.map(g => `${g.title} (due ${g.targetDate}${g.st
 
 User question: ${question}
 
-Answer helpfully as the "Ego" coach using specific Brain Balance insights.
+Answer helpfully as the "Ego" coach using specific MindSync insights.
 
 // ACTION BLOCK FORMAT:
 // When the user explicitly asks to schedule a task, generate an ACTION block like this:
@@ -210,7 +210,7 @@ Answer helpfully as the "Ego" coach using specific Brain Balance insights.
             return `Weekly History:
 ${historyStr || 'No history yet'}
 
-Provide a brief summary of my week's patterns and one key insight from the Brain Balance system.`;
+Provide a brief summary of my week's patterns and one key insight from the MindSync system.`;
         }
 
         case 'predict': {
@@ -246,7 +246,7 @@ Respond with ONLY this JSON format (no other text):
         }
 
         default:
-            return 'Give me general advice about maintaining brain balance.';
+            return 'Give me general advice about maintaining mental balance.';
     }
 }
 

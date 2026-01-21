@@ -1,4 +1,4 @@
-# Brain Balance - Task Tracker
+# MindSync - Task Tracker
 
 Last Updated: January 20, 2026
 

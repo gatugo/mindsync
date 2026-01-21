@@ -10,8 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "MindSync",
-  description: "Sync your Adult and Child minds for optimal flow. A productivity app using the Brain Balance framework.",
-  keywords: ["productivity", "mental health", "mindsync", "task management", "AI coaching", "brain balance"],
+  description: "Sync your Adult and Child minds for optimal flow. A productivity app for mental balance.",
+  keywords: ["productivity", "mental health", "mindsync", "task management", "AI coaching"],
 };
 
 export default function RootLayout({
