@@ -6,6 +6,12 @@ import { api } from '@/lib/api';
 export type TaskType = 'ADULT' | 'CHILD' | 'REST';
 export type TaskStatus = 'TODO' | 'START' | 'DONE';
 
+export interface UserPreferences {
+    hobbies: string[];
+    interests: string[];
+    passions: string[];
+}
+
 export interface Task {
     id: string;
     title: string;
@@ -37,7 +43,7 @@ export interface Goal {
     createdAt: string;
 }
 
-interface StoreState {
+export interface StoreState {
     // Tasks
     tasks: Task[];
     addTask: (title: string, type: TaskType, date?: string, time?: string) => void;
@@ -56,6 +62,10 @@ interface StoreState {
     editGoal: (goalId: string, title: string, targetDate: string, startTime?: string) => void;
     toggleGoal: (goalId: string) => void;
     deleteGoal: (goalId: string) => void;
+
+    // Preferences
+    preferences: UserPreferences;
+    updatePreferences: (prefs: Partial<UserPreferences>) => void;
 
     // Calculated
     getDailyScore: () => { score: number; balance: 'optimal' | 'anxiety' | 'depression' | 'neutral' };
@@ -86,6 +96,11 @@ export const useStore = create<StoreState>((set, get) => ({
     history: [],
     goals: [],
     _hasHydrated: false,
+    preferences: {
+        hobbies: ['Competitive Gaming (Fortnite)', 'Content Creation & Personal Branding'],
+        interests: ['Home Lab & Self-Hosting', 'Digital Privacy & Security Research'],
+        passions: ['AI Engineering & Agentic Workflows', 'Full-Stack Web Development']
+    },
 
     fetchInitialData: async () => {
         try {
@@ -161,11 +176,6 @@ export const useStore = create<StoreState>((set, get) => ({
     },
 
     clearCompletedTasks: () => {
-        // Note: For now, we only clear locally or we'd need a bulk delete API. 
-        // Let's implement individual deletes for sync consistency or add a bulk delete later.
-        // For safety, let's leaving this as local-only or warn. 
-        // Actually, let's unimplemented it for the sync version to avoid accidental data loss.
-        // Or better, iterate and delete.
         const state = get();
         const doneTasks = state.tasks.filter(t => t.status === 'DONE');
         doneTasks.forEach(task => api.deleteTask(task.id));
@@ -254,6 +264,10 @@ export const useStore = create<StoreState>((set, get) => ({
         api.deleteGoal(goalId);
     },
 
+    updatePreferences: (newPrefs) => set((state) => ({
+        preferences: { ...state.preferences, ...newPrefs }
+    })),
+
     // Calculated values (Unchanged)
     getDailyScore: () => {
         const state = get();
@@ -322,10 +336,6 @@ export const useStore = create<StoreState>((set, get) => ({
     },
 
     importData: (jsonData: string) => {
-        // TODO: For Sync version, import should probably bulk insert to DB?
-        // For now, let's keep it creating local state but warn user it needs to be manually synced/saved?
-        // Actually, simpler: Use existing logic but it won't auto-sync the imported data unless we iterate.
-        // Let's stick to simple local import for now or assume this overrides everything.
         try {
             const data = JSON.parse(jsonData);
             if (data.tasks && data.history && data.goals) {

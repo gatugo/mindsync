@@ -49,6 +49,7 @@ export default function AICoachModal({
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const addTask = useStore((state) => state.addTask);
+    const preferences = useStore((state) => state.preferences);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -323,6 +324,7 @@ export default function AICoachModal({
                         startTime: g.startTime,
                         completed: g.completed,
                     })),
+                    preferences, // Identify user hobbies/interests
                 }),
             });
 
@@ -565,7 +567,11 @@ export default function AICoachModal({
                             disabled={!question.trim() || isLoading}
                             className="px-4 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors self-start"
                         >
-                            <Send className="w-5 h-5" />
+                            <img
+                                src="/send-icon.png"
+                                alt="Send"
+                                className="w-5 h-5 object-contain"
+                            />
                         </button>
                     </div>
 

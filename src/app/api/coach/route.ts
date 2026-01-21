@@ -35,6 +35,7 @@ const CoachRequestSchema = z.object({
     taskTitle: z.string().optional(),
     history: z.array(z.any()).optional(),
     goals: z.array(z.any()).optional(),
+    preferences: z.any().optional(),
     conversationHistory: z.array(z.any()).optional()
 });
 
@@ -126,15 +127,21 @@ function calculateFreeSlots(tasks: CoachRequest['tasks']): string {
 }
 
 function buildPrompt(request: CoachRequest): string {
-    const { mode, tasks, score, balance, question, history, goals, taskTitle, conversationHistory } = request;
+    const { mode, tasks, score, balance, question, history, goals, preferences, taskTitle, conversationHistory } = request;
 
     const availableSlots = calculateFreeSlots(tasks);
+
+    const prefsStr = preferences ? `
+- Hobbies: ${preferences.hobbies?.join(', ') || 'None'}
+- Interests: ${preferences.interests?.join(', ') || 'None'}
+- Passions: ${preferences.passions?.join(', ') || 'None'}` : '';
 
     const commonContext = `Current Status:
 - Ego Score: ${score || 50}/100
 - Balance State: ${balance || 'neutral'}
 - Available Free Slots Today: ${availableSlots}
-${tasks ? `- Completed Today: ${tasks.filter(t => t.status === 'DONE' && t.type === 'ADULT').length} Adult, ${tasks.filter(t => t.status === 'DONE' && t.type === 'CHILD').length} Child` : ''}`;
+${tasks ? `- Completed Today: ${tasks.filter(t => t.status === 'DONE' && t.type === 'ADULT').length} Adult, ${tasks.filter(t => t.status === 'DONE' && t.type === 'CHILD').length} Child` : ''}
+User Profile:${prefsStr}`;
 
     switch (mode) {
         case 'advice': {
