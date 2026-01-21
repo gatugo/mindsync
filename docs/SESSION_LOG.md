@@ -4,6 +4,40 @@ This file tracks conversation history and progress across sessions.
 
 ---
 
+## January 21, 2026 - Mobile UI Responsiveness Fixes
+
+**Duration:** ~30 minutes  
+**Focus:** Fixing mobile layout issues with AddTaskPanel, DatePicker, and TimePicker
+
+### Accomplished
+- **AddTaskPanel Layout** (`73d99a1`):
+    - Refactored to two-row layout on mobile
+    - Row 1: Type, Date, Time selectors
+    - Row 2: AI button + Add Task button
+    - No more overlapping with ViewToggle
+- **TimePicker Smart Positioning** (`31ae084`):
+    - Detects viewport overflow
+    - Opens above button if not enough space below
+    - Added max-height with scroll as fallback
+- **DatePicker Smart Positioning** (`8a6d93b`):
+    - Same fix as TimePicker
+    - Calendar now opens above if near bottom of screen
+
+### Revert Commands (if needed)
+```bash
+# Revert all three changes:
+git revert 8a6d93b 31ae084 73d99a1
+
+# Or revert to before these changes:
+git reset --hard f3bfb50
+```
+
+### Next Steps
+- [ ] Test on various mobile devices
+- [ ] Monitor for additional overflow edge cases
+
+---
+
 ## January 20, 2026 - Supabase Integration
 
 **Duration:** ~45 minutes  
