@@ -25,12 +25,15 @@ function isRateLimited(ip: string): boolean {
 
 // ============ SECURITY: Input Validation ============
 const TaskSchema = z.object({
+    id: z.string().optional(),
     type: z.string(),
     status: z.string(),
     title: z.string(),
-    scheduledDate: z.string().optional(),
-    scheduledTime: z.string().optional(),
-    duration: z.number().optional()
+    scheduledDate: z.string().nullable().optional(),
+    scheduledTime: z.string().nullable().optional(),
+    duration: z.number().nullable().optional(),
+    createdAt: z.string().optional(),
+    completedAt: z.string().nullable().optional()
 });
 
 const CoachRequestSchema = z.object({
