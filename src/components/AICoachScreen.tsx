@@ -514,7 +514,7 @@ export default function AICoachScreen({
             </div>
 
             {/* Chat Input (always visible for ease of access, but meaningful mainly for chat) */}
-            <div className="p-4 border-t border-white/10">
+            <div className="px-4 pt-4 pb-2 border-t border-white/10">
                 <div className="flex gap-3 items-stretch">
                     <div className="flex-1 relative">
                         <input
@@ -571,7 +571,7 @@ export default function AICoachScreen({
                 </div>
 
                 {/* Compact Footer Info */}
-                <div className="flex items-center justify-between text-xs text-white/30 mt-3 px-1">
+                <div className="flex items-center justify-between text-xs text-white/30 mt-2 px-1">
                     <span>Score: {score}/100</span>
                     <span>{balance === 'optimal' ? 'Balance: Optimal' : 'Balance Check Needed'}</span>
                 </div>
