@@ -37,11 +37,6 @@ const nextConfig: NextConfig = {
   }
 };
 
-const withPWA = require("next-pwa")({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
-});
-
-export default withPWA(nextConfig);
+// PWA disabled temporarily - next-pwa v5 has compatibility issues with Next.js 16
+// TODO: Re-enable when next-pwa v6 is released or use alternative PWA solution
+export default nextConfig;
