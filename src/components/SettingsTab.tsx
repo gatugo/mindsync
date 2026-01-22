@@ -115,7 +115,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
 
             {/* App Info */}
             <div className="text-center text-sm text-slate-400 pt-4">
-                <p>MindSync v2.1</p>
+                <p>MindSync</p>
                 <p className="text-xs">Sync. Focus. Flow.</p>
             </div>
         </div>
