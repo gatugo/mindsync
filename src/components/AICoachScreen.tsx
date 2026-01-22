@@ -360,10 +360,10 @@ export default function AICoachScreen({
 
 
     const modeButtons = [
-        { mode: 'advice' as CoachMode, icon: Sparkles, label: 'Quick Advice' },
-        { mode: 'chat' as CoachMode, icon: MessageCircle, label: 'Ask Question' },
-        { mode: 'summary' as CoachMode, icon: TrendingUp, label: 'Weekly Summary' },
-        { mode: 'predict' as CoachMode, icon: Bot, label: 'Tomorrow Plan' },
+        { mode: 'advice' as CoachMode, icon: Sparkles, label: 'Advice' },
+        { mode: 'chat' as CoachMode, icon: MessageCircle, label: 'Chat' },
+        { mode: 'summary' as CoachMode, icon: TrendingUp, label: 'Summary' },
+        { mode: 'predict' as CoachMode, icon: Bot, label: 'Plan' },
     ];
 
     const format12hPreserve = (timeStr: string) => {
@@ -405,8 +405,8 @@ export default function AICoachScreen({
                 </div>
             </div>
 
-            {/* Mode Selector - Compact horizontal scroll */}
-            <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 scrollbar-hide">
+            {/* Mode Selector - Compact pills */}
+            <div className="px-4 py-3 flex flex-wrap gap-2 shrink-0 border-b border-white/5">
                 {modeButtons.map(({ mode: btnMode, icon: Icon, label }) => (
                     <button
                         key={btnMode}
@@ -416,9 +416,9 @@ export default function AICoachScreen({
                                 handleAskCoach(btnMode);
                             }
                         }}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-full transition-all whitespace-nowrap text-xs font-medium ${mode === btnMode
-                            ? 'bg-indigo-500 text-white'
-                            : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all whitespace-nowrap text-xs font-semibold ${mode === btnMode
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'
                             }`}
                     >
                         <Icon className="w-3.5 h-3.5" />
@@ -436,60 +436,92 @@ export default function AICoachScreen({
                 )}
 
                 {messages.map((msg) => (
-                    <div
-                        key={msg.id}
-                        className={`flex items-start gap-3 group ${msg.role === 'user' ? 'flex-row-reverse' : ''
-                            }`}
-                    >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-lg ${msg.role === 'user'
-                            ? 'bg-gradient-to-br from-indigo-500 to-indigo-600'
-                            : 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                            }`}>
-                            {msg.role === 'user' ? (
-                                <User className="w-4 h-4 text-white" />
-                            ) : (
-                                <Bot className="w-4 h-4 text-white" />
-                            )}
+                    <div key={msg.id} className="space-y-2">
+                        {/* Message Row */}
+                        <div className={`flex items-start gap-3 group ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-lg ${msg.role === 'user'
+                                ? 'bg-gradient-to-br from-indigo-500 to-indigo-600'
+                                : 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                                }`}>
+                                {msg.role === 'user' ? (
+                                    <User className="w-4 h-4 text-white" />
+                                ) : (
+                                    <Bot className="w-4 h-4 text-white" />
+                                )}
+                            </div>
+
+                            <div className={`relative flex-1 max-w-[calc(100%-3rem)] rounded-2xl p-3 sm:p-4 shadow-xl ${msg.role === 'user'
+                                ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white'
+                                : 'bg-gradient-to-br from-slate-800/90 to-slate-800/60 backdrop-blur-sm text-white/95 border border-white/10'
+                                }`}>
+                                <div className="text-sm leading-relaxed">{renderMarkdown(msg.content)}</div>
+                                <button
+                                    onClick={() => deleteMessage(msg.id)}
+                                    className={`absolute -top-2 p-1 rounded-full bg-slate-700/80 backdrop-blur text-white/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shadow-lg ${msg.role === 'user' ? '-left-2' : '-right-2'
+                                        }`}
+                                    title="Delete message"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
                         </div>
 
-                        <div className={`relative max-w-[90%] sm:max-w-[80%] rounded-2xl p-3 sm:p-4 shadow-xl ${msg.role === 'user'
-                            ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white'
-                            : 'bg-gradient-to-br from-slate-800/90 to-slate-800/60 backdrop-blur-sm text-white/95 border border-white/10'
-                            }`}>
-                            <div className="text-sm leading-relaxed">{renderMarkdown(msg.content)}</div>
-                            <button
-                                onClick={() => deleteMessage(msg.id)}
-                                className={`absolute -top-2 p-1 rounded-full bg-slate-700/80 backdrop-blur text-white/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shadow-lg ${msg.role === 'user' ? '-left-2' : '-right-2'
-                                    }`}
-                                title="Delete message"
-                            >
-                                <X className="w-3 h-3" />
-                            </button>
-                        </div>
-
-                        {/* Action Buttons */}
-                        {
-                            msg.actions && msg.actions.length > 0 && (
-                                <div className="flex flex-col gap-2 mt-1 -ml-11 pl-14 w-full">
-                                    {msg.actions.map((action, idx) => (
-                                        <button
+                        {/* Action Cards - BELOW the message */}
+                        {msg.actions && msg.actions.length > 0 && (
+                            <div className="ml-11 space-y-2">
+                                {msg.actions.map((action, idx) => {
+                                    const typeColors = {
+                                        ADULT: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', emoji: '🔵' },
+                                        CHILD: { bg: 'bg-pink-500/10', border: 'border-pink-500/30', text: 'text-pink-400', emoji: '🩷' },
+                                        REST: { bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400', emoji: '🟢' },
+                                    };
+                                    const colors = typeColors[action.taskType] || typeColors.ADULT;
+                                    return (
+                                        <div
                                             key={idx}
-                                            onClick={(e) => {
-                                                const btn = e.currentTarget;
-                                                handleExecuteAction(action, msg.id);
-                                                btn.disabled = true;
-                                                btn.innerHTML = '<span>Added to Schedule</span>';
-                                                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                                            }}
-                                            className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-xl text-sm transition-all border border-emerald-500/20 w-fit text-left group/btn"
+                                            className={`${colors.bg} ${colors.border} border rounded-xl p-3 transition-all hover:scale-[1.01]`}
                                         >
-                                            <PlusCircle className="w-4 h-4" />
-                                            <span>Add Task: <strong>{action.title}</strong> ({action.taskType}){action.scheduledTime ? ` @ ${format12hPreserve(action.scheduledTime)}` : ''}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )
-                        }
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-white text-sm">
+                                                        {colors.emoji} {action.title}
+                                                    </div>
+                                                    <div className={`text-xs ${colors.text} mt-0.5 flex items-center gap-2 flex-wrap`}>
+                                                        <span className="uppercase font-medium">{action.taskType}</span>
+                                                        {action.scheduledTime && (
+                                                            <>
+                                                                <span className="text-white/30">•</span>
+                                                                <span>{format12hPreserve(action.scheduledTime)}</span>
+                                                            </>
+                                                        )}
+                                                        {action.duration && (
+                                                            <>
+                                                                <span className="text-white/30">•</span>
+                                                                <span>{action.duration}min</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        const btn = e.currentTarget;
+                                                        handleExecuteAction(action, msg.id);
+                                                        btn.disabled = true;
+                                                        btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                                                        btn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
+                                                        btn.classList.add('bg-emerald-500', 'cursor-not-allowed');
+                                                    }}
+                                                    className="shrink-0 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-500/20"
+                                                >
+                                                    <PlusCircle className="w-3.5 h-3.5" />
+                                                    Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 ))}
 
