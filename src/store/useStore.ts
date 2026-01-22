@@ -75,10 +75,11 @@ export const useStore = create<StoreState>((set, get) => ({
 
     fetchInitialData: async () => {
         try {
-            const [tasks, goals, profile] = await Promise.all([
+            const [tasks, goals, profile, history] = await Promise.all([
                 api.fetchTasks(),
                 api.fetchGoals(),
-                api.fetchProfile()
+                api.fetchProfile(),
+                api.fetchHistory()
             ]);
 
             const newPrefs = { ...get().preferences };
@@ -88,7 +89,7 @@ export const useStore = create<StoreState>((set, get) => ({
                 if (profile.passions?.length) newPrefs.passions = profile.passions;
             }
 
-            set({ tasks, goals, preferences: newPrefs, _hasHydrated: true });
+            set({ tasks, goals, history, preferences: newPrefs, _hasHydrated: true });
         } catch (error) {
             console.error('Failed to fetch initial data:', error);
             set({ _hasHydrated: true });

@@ -131,8 +131,28 @@ export const api = {
     },
 
     // HISTORY
-    // Note: For history, we might just fetch the latest or rely on client-side calculation for now
-    // but let's persist the snapshots.
+    fetchHistory: async (): Promise<DailySnapshot[]> => {
+        const { data, error } = await supabase
+            .from('daily_history')
+            .select('*')
+            .order('date', { ascending: false })
+            .limit(30); // Last 30 days
+
+        if (error) {
+            console.error('Error fetching history:', error);
+            return [];
+        }
+
+        return (data || []).map((row: any) => ({
+            date: row.date,
+            score: row.score,
+            adultCompleted: row.adult_completed,
+            childCompleted: row.child_completed,
+            restCompleted: row.rest_completed,
+            tasks: row.snapshot_data || [],
+        }));
+    },
+
     saveSnapshot: async (snapshot: DailySnapshot) => {
         const { error } = await supabase.from('daily_history').upsert({
             date: snapshot.date,
