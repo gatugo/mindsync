@@ -42,6 +42,7 @@ This file tracks conversation history and progress across sessions.
 - `96db4b8` - refactor: fix circular dependencies
 
 ### Next Steps
+- [ ] **Set up AI to work in sync with MindSync system** (priority)
 - [ ] Re-enable PWA when next-pwa v6 releases
 - [ ] Test magic link flow on production
 - [ ] Add OAuth providers (Google, GitHub) if needed
