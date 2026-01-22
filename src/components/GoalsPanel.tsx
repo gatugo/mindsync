@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Goal } from '@/store/useStore';
+import { Goal } from '@/types';
 import DatePicker from './DatePicker';
 import TimePicker from './TimePicker';
 

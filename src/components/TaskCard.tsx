@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, TaskType } from '@/store/useStore';
+import { Task, TaskType } from '@/types';
 
 interface TaskCardProps {
     task: Task;

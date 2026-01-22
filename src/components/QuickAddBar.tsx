@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
-import { TaskType, useStore } from '@/store/useStore';
+import { useStore } from '@/store/useStore';
+import { TaskType } from '@/types';
 
 interface QuickAddBarProps {
     onAdd: (title: string, type: TaskType, date?: string, time?: string) => void;

@@ -1,6 +1,6 @@
 
 import { supabase } from './supabase';
-import { Task, Goal, DailySnapshot } from '@/store/useStore';
+import { Task, Goal, DailySnapshot } from '@/types';
 
 // --- Mappers ---
 

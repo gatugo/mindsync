@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Plus, X, ChevronDown, Bot, Loader2 } from 'lucide-react';
-import { TaskType, useStore } from '@/store/useStore';
+import { useStore } from '@/store/useStore';
+import { TaskType } from '@/types';
 import TimePicker from './TimePicker';
 import DatePicker from './DatePicker';
 import Portal from './Portal';

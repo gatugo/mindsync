@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Task, TaskType, TaskStatus } from '@/store/useStore';
+import { Task, TaskType, TaskStatus } from '@/types';
 import { X, Clock, Calendar, Type, Trash2, Save } from 'lucide-react';
 import TimePicker from '@/components/TimePicker';
 import DatePicker from '@/components/DatePicker';

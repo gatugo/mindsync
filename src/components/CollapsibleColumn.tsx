@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, TaskStatus } from '@/store/useStore';
+import { Task, TaskStatus } from '@/types';
 import TaskCard from '@/components/TaskCard';
 
 interface CollapsibleColumnProps {

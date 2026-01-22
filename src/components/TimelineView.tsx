@@ -1,4 +1,4 @@
-import { Task, TaskType } from '@/store/useStore';
+import { Task, TaskType } from '@/types';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Pencil, Check, X, Trash2, Plus, Clock, ChevronLeft, ChevronRight, Calendar as CalendarIcon, LayoutList, Grid, Bot, Loader2, Sparkles } from 'lucide-react';
 
@@ -501,8 +501,8 @@ export default function TimelineView({
                                         <button
                                             onClick={() => setNewTaskType('ADULT')}
                                             className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${newTaskType === 'ADULT'
-                                                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
-                                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
+                                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                                : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
                                                 }`}
                                         >
                                             🔵 Adult
@@ -510,8 +510,8 @@ export default function TimelineView({
                                         <button
                                             onClick={() => setNewTaskType('CHILD')}
                                             className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${newTaskType === 'CHILD'
-                                                    ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30'
-                                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
+                                                ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30'
+                                                : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
                                                 }`}
                                         >
                                             🩷 Child
@@ -519,8 +519,8 @@ export default function TimelineView({
                                         <button
                                             onClick={() => setNewTaskType('REST')}
                                             className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${newTaskType === 'REST'
-                                                    ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
+                                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                                                : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
                                                 }`}
                                         >
                                             🟢 Rest

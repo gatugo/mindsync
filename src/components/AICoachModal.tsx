@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCircle, CheckCircle2 } from 'lucide-react';
-import { useStore, Task, DailySnapshot, Goal, TaskType } from '@/store/useStore';
+import { useStore } from '@/store/useStore';
+import { Task, DailySnapshot, Goal, TaskType } from '@/types';
 
 interface AICoachModalProps {
     isOpen: boolean;

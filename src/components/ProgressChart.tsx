@@ -13,7 +13,7 @@ import {
     Legend,
     ResponsiveContainer,
 } from 'recharts';
-import { DailySnapshot } from '@/store/useStore';
+import { DailySnapshot } from '@/types';
 
 interface ProgressChartProps {
     history: DailySnapshot[];

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useSyncExternalStore, useRef } from 'react';
 import Link from 'next/link';
-import { useStore, TaskType, Task } from '@/store/useStore';
+import { useStore } from '@/store/useStore';
+import { TaskType, Task } from '@/types';
 import AddTaskPanel from '@/components/AddTaskPanel';
 import ProgressChart from '@/components/ProgressChart';
 
@@ -11,6 +12,7 @@ import GoalsPanel from '@/components/GoalsPanel';
 import TimelineView from '@/components/TimelineView';
 import BottomNav from '@/components/BottomNav';
 import QuickAddBar from '@/components/QuickAddBar';
+import AICoachScreen from '@/components/AICoachScreen';
 import SettingsTab from '@/components/SettingsTab';
 // ... (rest of imports)
 

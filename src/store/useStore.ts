@@ -1,6 +1,7 @@
 
 import { create } from 'zustand';
 import { api } from '@/lib/api';
+import { Task, Goal, DailySnapshot, TaskType, TaskStatus, UserPreferences } from '@/types';
 
 const getPreferencesFromEnv = (key: string, defaults: string[]): string[] => {
     try {
@@ -11,47 +12,6 @@ const getPreferencesFromEnv = (key: string, defaults: string[]): string[] => {
         return defaults;
     }
 };
-
-// ============ TYPES ============
-export type TaskType = 'ADULT' | 'CHILD' | 'REST';
-export type TaskStatus = 'TODO' | 'START' | 'DONE';
-
-export interface UserPreferences {
-    hobbies: string[];
-    interests: string[];
-    passions: string[];
-}
-
-export interface Task {
-    id: string;
-    title: string;
-    type: TaskType;
-    status: TaskStatus;
-    scheduledDate?: string; // Optional scheduled date
-    scheduledTime?: string; // Optional scheduled time
-    duration?: number; // Optional duration in minutes
-    createdAt: string;
-    completedAt?: string;
-}
-
-export interface DailySnapshot {
-    date: string; // YYYY-MM-DD format
-    tasks: Task[];
-    score: number;
-    adultCompleted: number;
-    childCompleted: number;
-    restCompleted: number;
-}
-
-export interface Goal {
-    id: string;
-    title: string;
-    titleDate?: string; // Deprecated but might exist in old data
-    targetDate: string;
-    startTime?: string; // Optional start time (HH:MM format)
-    completed: boolean;
-    createdAt: string;
-}
 
 export interface StoreState {
     // Tasks
