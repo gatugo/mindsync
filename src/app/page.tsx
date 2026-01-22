@@ -6,11 +6,14 @@ import { useStore, TaskType, Task } from '@/store/useStore';
 import AddTaskPanel from '@/components/AddTaskPanel';
 import CollapsibleColumn from '@/components/CollapsibleColumn';
 import ProgressChart from '@/components/ProgressChart';
-import AICoachModal from '@/components/AICoachModal';
+
 import EditTaskModal from '@/components/EditTaskModal';
 import GoalsPanel from '@/components/GoalsPanel';
-import ViewToggle from '@/components/ViewToggle';
 import TimelineView from '@/components/TimelineView';
+import BottomNav from '@/components/BottomNav';
+import QuickAddBar from '@/components/QuickAddBar';
+import AICoachScreen from '@/components/AICoachScreen';
+
 
 // Custom hook for hydration check
 function useHydration() {
@@ -24,11 +27,10 @@ function useHydration() {
 export default function Home() {
   const isHydrated = useHydration();
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
-  const [isAICoachOpen, setIsAICoachOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showChart, setShowChart] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
-  const [viewMode, setViewMode] = useState<'kanban' | 'timeline'>('kanban');
+  const [activeTab, setActiveTab] = useState<'today' | 'stats' | 'coach' | 'settings'>('today');
   const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -185,7 +187,7 @@ export default function Home() {
               {isHeaderDropdownOpen && (
                 <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden p-2 dropdown-enter">
                   <button
-                    onClick={() => { setIsAICoachOpen(true); setIsHeaderDropdownOpen(false); }}
+                    onClick={() => { setActiveTab('coach'); setIsHeaderDropdownOpen(false); }}
                     className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
                   >
                     <span className="material-icons-round text-lg text-indigo-500">smart_toy</span>
@@ -232,75 +234,11 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-[1600px] mx-auto p-4 md:p-6 flex flex-col h-[calc(100vh-80px)] overflow-hidden space-y-6">
-        {/* Goals Panel - Dropdown below header */}
-        {showGoals && (
-          <GoalsPanel
-            goals={goals}
-            onAddGoal={addGoal}
-            onEditGoal={editGoal}
-            onToggleGoal={toggleGoal}
-            onDeleteGoal={deleteGoal}
-            onClose={() => setShowGoals(false)}
-          />
-        )}
-
-        {/* Add Task Panel (Conditionally Rendered) */}
-        <AddTaskPanel
-          isOpen={isAddTaskOpen}
-          onClose={() => setIsAddTaskOpen(false)}
-          onAdd={handleAddNewTask}
-        />
-
-        {/* Chart (togglable) */}
-        {showChart && <ProgressChart history={history} onClose={() => setShowChart(false)} />}
-
-        {/* View Selection & Timeline/Kanban */}
-        <div className="flex-1 flex flex-col min-h-0 space-y-6">
-          <div className="flex justify-center flex-shrink-0">
-            <ViewToggle view={viewMode} onViewChange={setViewMode} />
-          </div>
-
-          {viewMode === 'kanban' ? (
-            <div className="flex-1 min-h-0">
-              <div className="flex gap-4 md:gap-6 overflow-x-auto pb-4 custom-scrollbar kanban-snap-container md:justify-center px-4 -mx-4 h-full">
-                <div className="min-w-[320px] max-w-[400px] flex-1 h-full kanban-column-snap">
-                  <CollapsibleColumn
-                    title="To Do"
-                    status="TODO"
-                    tasks={getTasksByStatus('TODO')}
-                    onMoveTask={moveTask}
-                    onDeleteTask={deleteTask}
-                    onEditTask={setEditingTask}
-                    onAddTask={() => setIsAddTaskOpen(true)}
-                  />
-                </div>
-                <div className="min-w-[320px] max-w-[400px] flex-1 h-full kanban-column-snap">
-                  <CollapsibleColumn
-                    title="In Progress"
-                    status="START"
-                    tasks={getTasksByStatus('START')}
-                    onMoveTask={moveTask}
-                    onDeleteTask={deleteTask}
-                    onEditTask={setEditingTask}
-                    onAddTask={() => setIsAddTaskOpen(true)}
-                  />
-                </div>
-                <div className="min-w-[320px] max-w-[400px] flex-1 h-full kanban-column-snap">
-                  <CollapsibleColumn
-                    title="Done"
-                    status="DONE"
-                    tasks={getTasksByStatus('DONE')}
-                    onMoveTask={moveTask}
-                    onDeleteTask={deleteTask}
-                    onEditTask={setEditingTask}
-                    onAddTask={() => setIsAddTaskOpen(true)}
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 overflow-auto custom-scrollbar">
+      <main className="max-w-md mx-auto p-4 flex flex-col h-[calc(100vh-140px)] overflow-hidden space-y-4">
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-hidden relative">
+          {activeTab === 'today' && (
+            <div className="h-full overflow-y-auto custom-scrollbar pb-24">
               <TimelineView
                 tasks={tasks}
                 onMoveTask={moveTask}
@@ -311,21 +249,36 @@ export default function Home() {
               />
             </div>
           )}
+
+          {activeTab === 'stats' && (
+            <div className="p-4">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-4">Daily Balance</h2>
+              <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-2xl">
+                <ProgressChart history={history} />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'coach' && (
+            <AICoachScreen
+              tasks={tasks}
+              score={score}
+              balance={balance}
+              history={history}
+              goals={goals}
+            />
+          )}
         </div>
       </main>
 
-      {/* AI Coach Modal */}
-      <AICoachModal
-        isOpen={isAICoachOpen}
-        onClose={() => setIsAICoachOpen(false)}
-        tasks={tasks}
-        score={score}
-        balance={balance}
-        history={history}
-        goals={goals}
-      />
+      {/* Persistent Quick Add Bar (only on Today tab) */}
+      {activeTab === 'today' && <QuickAddBar onAdd={handleAddNewTask} />}
 
-      {/* Edit Task Modal */}
+      {/* Bottom Navigation */}
+      <BottomNav currentTab={activeTab} onTabChange={setActiveTab} />
+
+
+
       <EditTaskModal
         isOpen={!!editingTask}
         onClose={() => setEditingTask(null)}
@@ -333,17 +286,6 @@ export default function Home() {
         onSave={updateTask}
         onDelete={deleteTask}
       />
-
-      {/* Footer */}
-      <footer className="mt-auto w-full bg-slate-900/50 border-t border-slate-800">
-        {/* Subtle Gradient Border */}
-        <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#5c67ff]/50 to-transparent"></div>
-        <div className="max-w-[1600px] mx-auto px-6 py-5">
-          <div className="text-center text-sm font-light text-slate-500">
-            MindSync © 2026
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

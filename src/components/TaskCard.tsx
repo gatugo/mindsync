@@ -42,17 +42,18 @@ export default function TaskCard({
             onDoubleClick={onEdit}
             onClick={() => setIsExpanded(!isExpanded)}
             onMouseLeave={() => setIsExpanded(false)}
-            className={`task-card-hover group relative bg-white/5 border border-slate-700/50 p-4 rounded-2xl cursor-pointer transition-all duration-300 hover:border-[#5c67ff]/40 ${isDone ? 'opacity-70 grayscale-[0.5] hover:grayscale-0 hover:opacity-100' : ''
-                }`}
+            className={`task-card-hover group relative border border-white/5 p-4 rounded-2xl cursor-pointer transition-all duration-300 hover:scale-[1.02] shadow-lg backdrop-blur-sm
+                ${task.type === 'ADULT' ? 'bg-slate-800/80 hover:bg-slate-800' : ''}
+                ${task.type === 'CHILD' ? 'bg-fuchsia-900/50 hover:bg-fuchsia-900/60' : ''}
+                ${task.type === 'REST' ? 'bg-emerald-900/50 hover:bg-emerald-900/60' : ''}
+                ${isDone ? 'opacity-60 grayscale-[0.3]' : 'opacity-100'}
+            `}
         >
             {/* Header: Badge & Date */}
             <div className="flex justify-between items-start mb-3">
-                <span
-                    className={`px-2 py-0.5 rounded ${config.bgColor} ${config.color} text-[10px] font-bold tracking-widest uppercase flex items-center gap-1`}
-                >
-                    <span className={`w-1.5 h-1.5 rounded-full bg-current`}></span>
-                    {config.label}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold tracking-widest uppercase text-white/50">{config.label}</span>
+                </div>
 
                 <div className="flex items-center gap-2">
                     {/* Mobile "More" Indicator - visible only on small screens when not expanded */}

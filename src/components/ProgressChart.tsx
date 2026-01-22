@@ -17,7 +17,6 @@ import { DailySnapshot } from '@/store/useStore';
 
 interface ProgressChartProps {
     history: DailySnapshot[];
-    onClose?: () => void;
 }
 
 type TimeRange = '7days' | '30days';
@@ -31,7 +30,7 @@ function useHydration() {
     );
 }
 
-export default function ProgressChart({ history, onClose }: ProgressChartProps) {
+export default function ProgressChart({ history }: ProgressChartProps) {
     const [timeRange, setTimeRange] = useState<TimeRange>('7days');
     const mounted = useHydration();
 
@@ -85,16 +84,7 @@ export default function ProgressChart({ history, onClose }: ProgressChartProps) 
     return (
         <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 relative">
             {/* Close Button */}
-            {onClose && (
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="absolute top-3 right-3 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors z-10"
-                    aria-label="Close progress overview"
-                >
-                    <X className="w-5 h-5" />
-                </button>
-            )}
+
 
             {/* Header */}
             <div className="flex items-center justify-between mb-4 pr-8">
