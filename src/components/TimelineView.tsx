@@ -429,34 +429,61 @@ export default function TimelineView({
                                 </div>
                             );
                         })}
-                        {/* Creation Modal (Simplified Overlay) */}
+                        {/* Creation Modal (Improved Design) */}
                         {creatingSlot && (
-                            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setCreatingSlot(null)}>
-                                <div className="bg-slate-800 p-4 rounded-xl w-80 shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
-                                    <h4 className="text-white font-bold mb-3">Add Task at {format12h(creatingSlot)}</h4>
-                                    <div className="relative">
-                                        <input autoFocus value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)}
-                                            onKeyDown={e => e.key === 'Enter' && saveNewTask(creatingSlot)}
-                                            className="w-full bg-slate-950 p-2 pr-10 rounded text-white mb-1 border border-white/10" placeholder="Task title..." />
+                            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in duration-200" onClick={() => setCreatingSlot(null)}>
+                                <div
+                                    className="bg-gradient-to-b from-slate-800 to-slate-900 p-5 rounded-2xl w-80 shadow-2xl border border-white/10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    {/* Header with Time and Close */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+                                                <Clock className="w-5 h-5 text-indigo-400" />
+                                            </div>
+                                            <div>
+                                                <div className="text-2xl font-bold text-white tracking-tight">{format12h(creatingSlot)}</div>
+                                                <div className="text-[10px] text-white/40 uppercase tracking-wider">New Task</div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setCreatingSlot(null)}
+                                            className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
 
-                                        {/* AI Bot Button */}
+                                    {/* Input with AI Button */}
+                                    <div className="relative mb-3">
+                                        <input
+                                            autoFocus
+                                            value={newTaskTitle}
+                                            onChange={e => setNewTaskTitle(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && saveNewTask(creatingSlot)}
+                                            className="w-full bg-slate-950/80 p-3 pr-12 rounded-xl text-white border border-white/10 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-white/30"
+                                            placeholder="What needs to be done?"
+                                        />
                                         <button
                                             onClick={handleAIAssist}
                                             disabled={isAILoading || !newTaskTitle.trim()}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                            title="AI Auto-Fill"
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-purple-500/20"
+                                            title="AI Auto-Fill Type"
                                         >
-                                            {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Bot className="w-3 h-3" />}
+                                            {isAILoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                         </button>
                                     </div>
-                                    {aiError && <div className="text-[10px] text-red-400 mb-2">{aiError}</div>}
+
+                                    {/* AI Error */}
+                                    {aiError && <div className="text-xs text-red-400 mb-2 px-1">{aiError}</div>}
 
                                     {/* Natural Language Preview */}
                                     {newTaskTitle.trim() && (() => {
                                         const parsed = parseNaturalDateTime(newTaskTitle);
                                         if (parsed.date || parsed.time) {
                                             return (
-                                                <div className="mb-2 text-[10px] text-indigo-300 flex items-center gap-1.5">
+                                                <div className="mb-3 text-xs text-indigo-300/80 flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2">
                                                     <Sparkles className="w-3 h-3" />
                                                     <span>
                                                         Detected: {parsed.date && `${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
@@ -469,12 +496,53 @@ export default function TimelineView({
                                         return null;
                                     })()}
 
-                                    <div className="h-2"></div>
-                                    <div className="flex gap-2 justify-end">
-                                        <button onClick={() => setNewTaskType('ADULT')} className={`px-2 py-1 rounded text-xs ${newTaskType === 'ADULT' ? 'bg-blue-500 text-white' : 'bg-white/10 text-white/50'}`}>Adult</button>
-                                        <button onClick={() => setNewTaskType('CHILD')} className={`px-2 py-1 rounded text-xs ${newTaskType === 'CHILD' ? 'bg-pink-500 text-white' : 'bg-white/10 text-white/50'}`}>Child</button>
-                                        <button onClick={() => setNewTaskType('REST')} className={`px-2 py-1 rounded text-xs ${newTaskType === 'REST' ? 'bg-green-500 text-white' : 'bg-white/10 text-white/50'}`}>Rest</button>
-                                        <button onClick={() => saveNewTask(creatingSlot)} className="ml-auto bg-indigo-500 text-white px-3 py-1 rounded text-xs">Add</button>
+                                    {/* Type Selector - Colored Pills */}
+                                    <div className="flex gap-2 mb-4">
+                                        <button
+                                            onClick={() => setNewTaskType('ADULT')}
+                                            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${newTaskType === 'ADULT'
+                                                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
+                                                }`}
+                                        >
+                                            🔵 Adult
+                                        </button>
+                                        <button
+                                            onClick={() => setNewTaskType('CHILD')}
+                                            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${newTaskType === 'CHILD'
+                                                    ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30'
+                                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
+                                                }`}
+                                        >
+                                            🩷 Child
+                                        </button>
+                                        <button
+                                            onClick={() => setNewTaskType('REST')}
+                                            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${newTaskType === 'REST'
+                                                    ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                                                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
+                                                }`}
+                                        >
+                                            🟢 Rest
+                                        </button>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => setCreatingSlot(null)}
+                                            className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-all border border-white/10"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => saveNewTask(creatingSlot)}
+                                            disabled={!newTaskTitle.trim()}
+                                            className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Add Task
+                                        </button>
                                     </div>
                                 </div>
                             </div>
