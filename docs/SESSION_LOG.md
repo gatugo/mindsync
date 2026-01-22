@@ -4,6 +4,50 @@ This file tracks conversation history and progress across sessions.
 
 ---
 
+## January 22, 2026 - Authentication & UX Improvements
+
+**Duration:** ~2 hours  
+**Focus:** Supabase Auth integration, inline task completion, bug fixes
+
+### Accomplished
+
+#### 1. Supabase Authentication
+- Created **Login page** (`/login`) with Supabase Auth UI
+- Added **"Log In / Sign Up"** button to Settings tab  
+- Configured magic link and email/password authentication
+- Added `redirectTo` for production magic link confirmation
+- **Required user action:** Add redirect URL in Supabase Dashboard → Authentication → URL Configuration
+
+#### 2. Inline Task Completion (UX Fix)
+- Added **checkmark circle** on each task card in Timeline view
+- One-tap to mark tasks as DONE (green checkmark, dimmed card)
+- Toggle back to incomplete with another tap
+- No strikethrough per user preference
+
+#### 3. Stats Tab Fix
+- Added `fetchHistory()` API method to load snapshots from Supabase
+- Stats tab now loads last 30 days of progress data
+
+#### 4. Code Refactoring
+- **Fixed circular dependency** by moving shared types to `src/types.ts`
+- Fixed Vercel build failures caused by `next-pwa` incompatibility
+- PWA temporarily disabled (Next.js 16 compatibility issue)
+
+#### 5. UI Polish
+- Removed version number from Settings footer (just "MindSync" now)
+
+### Key Commits
+- `beea2b3` - feat(auth): Supabase Auth with profiles and login page
+- `fda27a4` - feat: inline checkmark to complete tasks in timeline
+- `96db4b8` - refactor: fix circular dependencies
+
+### Next Steps
+- [ ] Re-enable PWA when next-pwa v6 releases
+- [ ] Test magic link flow on production
+- [ ] Add OAuth providers (Google, GitHub) if needed
+
+---
+
 ## January 21, 2026 - Mobile UI Responsiveness Fixes
 
 **Duration:** ~30 minutes  
