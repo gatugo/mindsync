@@ -192,24 +192,6 @@ export default function Home() {
                       <span className={`material-icons-round text-lg ${showGoals ? 'text-amber-500' : 'text-amber-400/70'}`}>flag</span>
                       <span>{showGoals ? 'Hide Goals' : 'Show Goals'}</span>
                     </button>
-
-                    <div className="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" />
-
-                    <button
-                      onClick={handleImport}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      <span className="material-icons-round text-lg text-emerald-500">file_download</span>
-                      <span>Import Data</span>
-                    </button>
-
-                    <button
-                      onClick={handleExport}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      <span className="material-icons-round text-lg text-cyan-500">file_upload</span>
-                      <span>Export Report</span>
-                    </button>
                   </div>
                 )}
               </div>
@@ -311,6 +293,12 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      <AddTaskPanel
+        isOpen={isAddTaskOpen}
+        onClose={() => setIsAddTaskOpen(false)}
+        onAdd={handleAddNewTask}
+      />
 
       {/* Persistent Quick Add Bar (only on Today tab) */}
       {activeTab === 'today' && <QuickAddBar onAdd={handleAddNewTask} />}
