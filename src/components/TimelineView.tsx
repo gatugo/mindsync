@@ -404,21 +404,34 @@ export default function TimelineView({
                                             <div key={task.id}
                                                 draggable
                                                 onDragStart={(e) => handleDragStart(e, task.id)}
-                                                onClick={() => onEditTask(task)}
-                                                className="bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all shadow-sm cursor-pointer group flex flex-col gap-1 overflow-hidden"
+                                                className={`bg-white/5 backdrop-blur-sm rounded-lg p-2 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all shadow-sm group flex gap-2 overflow-hidden ${task.status === 'DONE' ? 'opacity-50' : ''}`}
                                                 style={{ minHeight: `${(task.duration || 30) / 30 * 60}px` }}
                                             >
-                                                <div className="flex items-center justify-between gap-1 w-full">
-                                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${typeConfig[task.type].bg} ${typeConfig[task.type].border} text-white/90 truncate max-w-[70%]`}>
-                                                        {typeConfig[task.type].emoji} {typeConfig[task.type].label}
-                                                    </span>
-                                                    <span className="text-[10px] text-white/40 font-mono tracking-tight shrink-0 whitespace-nowrap">
-                                                        {task.scheduledTime ? format12h(task.scheduledTime) : ''}
+                                                {/* Inline Complete Button */}
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onMoveTask(task.id, task.status === 'DONE' ? 'TODO' : 'DONE'); }}
+                                                    className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.status === 'DONE'
+                                                        ? 'bg-green-500 border-green-500 text-white'
+                                                        : 'border-white/30 hover:border-green-400 hover:bg-green-500/20 text-transparent hover:text-green-400'
+                                                        }`}
+                                                    title={task.status === 'DONE' ? 'Mark incomplete' : 'Mark complete'}
+                                                >
+                                                    <Check className="w-3.5 h-3.5" />
+                                                </button>
+                                                {/* Task Content */}
+                                                <div className="flex-1 cursor-pointer" onClick={() => onEditTask(task)}>
+                                                    <div className="flex items-center justify-between gap-1 w-full">
+                                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${typeConfig[task.type].bg} ${typeConfig[task.type].border} text-white/90 truncate max-w-[70%]`}>
+                                                            {typeConfig[task.type].emoji} {typeConfig[task.type].label}
+                                                        </span>
+                                                        <span className="text-[10px] text-white/40 font-mono tracking-tight shrink-0 whitespace-nowrap">
+                                                            {task.scheduledTime ? format12h(task.scheduledTime) : ''}
+                                                        </span>
+                                                    </div>
+                                                    <span className="font-medium text-white/90 text-sm leading-snug break-words line-clamp-2">
+                                                        {task.title}
                                                     </span>
                                                 </div>
-                                                <span className="font-medium text-white/90 text-sm leading-snug break-words line-clamp-2">
-                                                    {task.title}
-                                                </span>
                                             </div>
                                         ))}
                                         <div className="flex-1 min-h-[40px] group cursor-pointer flex items-center justify-center"
