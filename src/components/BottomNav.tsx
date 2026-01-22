@@ -16,15 +16,7 @@ export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'today' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
                     <Home className="w-6 h-6" />
-                    <span className="text-[10px] font-medium">Today</span>
-                </button>
-
-                <button
-                    onClick={() => onTabChange('stats')}
-                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'stats' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                >
-                    <BarChart2 className="w-6 h-6" />
-                    <span className="text-[10px] font-medium">Stats</span>
+                    <span className="text-[10px] font-medium">Home</span>
                 </button>
 
                 <button
@@ -35,7 +27,15 @@ export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
                     <span className="text-[10px] font-medium">Coach</span>
                 </button>
 
-                {/* Settings Placeholder - could be used for simple modal or data actions */}
+                <button
+                    onClick={() => onTabChange('stats')}
+                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'stats' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                >
+                    <BarChart2 className="w-6 h-6" />
+                    <span className="text-[10px] font-medium">Stats</span>
+                </button>
+
+                {/* Settings */}
                 <button
                     onClick={() => onTabChange('settings')}
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'settings' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
