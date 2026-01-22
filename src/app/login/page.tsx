@@ -63,8 +63,9 @@ export default function LoginPage() {
                             },
                         }}
                         theme="dark"
-                        providers={[]} // Add 'google', 'github' later if needed
+                        providers={[]}
                         magicLink={true}
+                        redirectTo={typeof window !== 'undefined' ? `${window.location.origin}/` : undefined}
                     />
                 </div>
 
