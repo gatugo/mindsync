@@ -47,8 +47,8 @@ Last Updated: January 20, 2026
 - [x] AI Coach: Add User Personalization (Hobbies/Interests) & Explicit Scheduling Confirmation
 - [x] UI Polish: Premium "Send" button & Active Chat Input
 - [x] Codebase Anonymization: Replaced hardcoded personal data with generic defaults & `.env.local` support
-- [ ] Add user authentication (Supabase Auth)
-- [ ] Progressive Web App (PWA) install
+- [x] Add user authentication (Supabase Auth)
+- [x] Progressive Web App (PWA) install
 
 ### Future Enhancements
 - [ ] Streaming AI responses (word-by-word)
