@@ -360,8 +360,8 @@ export default function AICoachScreen({
 
 
     const modeButtons = [
-        { mode: 'advice' as CoachMode, icon: Sparkles, label: 'Advice' },
         { mode: 'chat' as CoachMode, icon: MessageCircle, label: 'Chat' },
+        { mode: 'advice' as CoachMode, icon: Sparkles, label: 'Advice' },
         { mode: 'summary' as CoachMode, icon: TrendingUp, label: 'Summary' },
         { mode: 'predict' as CoachMode, icon: Bot, label: 'Plan' },
     ];
@@ -405,8 +405,8 @@ export default function AICoachScreen({
                 </div>
             </div>
 
-            {/* Mode Selector - Compact pills */}
-            <div className="px-4 py-3 flex flex-wrap gap-2 shrink-0 border-b border-white/5">
+            {/* Mode Selector - Single row */}
+            <div className="px-3 py-2 flex justify-center gap-1.5 shrink-0 border-b border-white/5">
                 {modeButtons.map(({ mode: btnMode, icon: Icon, label }) => (
                     <button
                         key={btnMode}
@@ -416,12 +416,12 @@ export default function AICoachScreen({
                                 handleAskCoach(btnMode);
                             }
                         }}
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all whitespace-nowrap text-xs font-semibold ${mode === btnMode
-                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap text-xs font-semibold ${mode === btnMode
+                            ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30'
                             : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'
                             }`}
                     >
-                        <Icon className="w-3.5 h-3.5" />
+                        <Icon className="w-3 h-3" />
                         <span>{label}</span>
                     </button>
                 ))}
