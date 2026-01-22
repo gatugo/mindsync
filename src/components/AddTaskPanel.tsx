@@ -137,8 +137,8 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
     if (!isOpen) return null;
 
     return (
-        <div className="mb-6 animate-in slide-in-from-top-4 fade-in duration-300">
-            <div className="bg-slate-800/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl relative overflow-visible group">
+        <div className="fixed top-[81px] left-0 right-0 z-40 flex justify-center px-4 animate-in slide-in-from-top-4 fade-in duration-300 pointer-events-none">
+            <div className="w-full max-w-md pointer-events-auto bg-slate-800/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl relative overflow-visible group">
 
                 {/* Close Button (subtle) */}
                 <button

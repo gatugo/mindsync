@@ -71,6 +71,11 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Close Add Task panel when switching tabs
+  useEffect(() => {
+    setIsAddTaskOpen(false);
+  }, [activeTab]);
+
   const { score, balance } = getDailyScore();
 
   const handleAddNewTask = (title: string, type: TaskType, date?: string, time?: string) => {
