@@ -223,6 +223,16 @@ export default function Home() {
         <div className="flex-1 overflow-hidden relative">
           {activeTab === 'today' && (
             <div className="h-full overflow-y-auto custom-scrollbar pb-24">
+              {showGoals && (
+                <GoalsPanel
+                  goals={goals}
+                  onAddGoal={addGoal}
+                  onEditGoal={editGoal}
+                  onToggleGoal={toggleGoal}
+                  onDeleteGoal={deleteGoal}
+                  onClose={() => setShowGoals(false)}
+                />
+              )}
               <TimelineView
                 tasks={tasks}
                 onMoveTask={moveTask}
