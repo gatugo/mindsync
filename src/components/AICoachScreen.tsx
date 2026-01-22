@@ -401,8 +401,8 @@ export default function AICoachScreen({
                 </div>
             </div>
 
-            {/* Mode Selector */}
-            <div className="p-4 grid grid-cols-2 gap-2">
+            {/* Mode Selector - Compact horizontal scroll */}
+            <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 scrollbar-hide">
                 {modeButtons.map(({ mode: btnMode, icon: Icon, label }) => (
                     <button
                         key={btnMode}
@@ -412,13 +412,13 @@ export default function AICoachScreen({
                                 handleAskCoach(btnMode);
                             }
                         }}
-                        className={`flex items-center gap-2 p-3 rounded-xl transition-all ${mode === btnMode
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-full transition-all whitespace-nowrap text-xs font-medium ${mode === btnMode
                             ? 'bg-indigo-500 text-white'
-                            : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+                            : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                             }`}
                     >
-                        <Icon className="w-4 h-4" />
-                        <span className="text-sm font-medium">{label}</span>
+                        <Icon className="w-3.5 h-3.5" />
+                        <span>{label}</span>
                     </button>
                 ))}
             </div>
