@@ -11,10 +11,12 @@ import GoalsPanel from '@/components/GoalsPanel';
 import TimelineView from '@/components/TimelineView';
 import BottomNav from '@/components/BottomNav';
 import QuickAddBar from '@/components/QuickAddBar';
-import AICoachScreen from '@/components/AICoachScreen';
+import SettingsTab from '@/components/SettingsTab';
+// ... (rest of imports)
+
+// ... inside page component ...
 
 
-// Custom hook for hydration check
 function useHydration() {
   return useSyncExternalStore(
     () => () => { },
@@ -251,50 +253,12 @@ export default function Home() {
           )}
 
           {activeTab === 'settings' && (
-            <div className="h-full p-4 space-y-6">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Settings</h2>
-
-              {/* Goals Toggle */}
-              <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
-                <button
-                  onClick={() => setShowGoals(!showGoals)}
-                  className="flex items-center justify-between w-full"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="material-icons-round text-amber-500">flag</span>
-                    <span className="font-medium text-slate-700 dark:text-slate-200">Show Goals on Today</span>
-                  </div>
-                  <div className={`w-12 h-7 rounded-full p-1 transition-colors ${showGoals ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                    <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${showGoals ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </div>
-                </button>
-              </div>
-
-              {/* Data Management */}
-              <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl space-y-3">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data</h3>
-                <button
-                  onClick={handleImport}
-                  className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                >
-                  <span className="material-icons-round text-emerald-500">file_download</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-200">Import Data</span>
-                </button>
-                <button
-                  onClick={handleExport}
-                  className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                >
-                  <span className="material-icons-round text-cyan-500">file_upload</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-200">Export Report</span>
-                </button>
-              </div>
-
-              {/* App Info */}
-              <div className="text-center text-sm text-slate-400 pt-4">
-                <p>MindSync v2.0</p>
-                <p className="text-xs">Sync. Focus. Flow.</p>
-              </div>
-            </div>
+            <SettingsTab
+              showGoals={showGoals}
+              setShowGoals={setShowGoals}
+              handleImport={handleImport}
+              handleExport={handleExport}
+            />
           )}
         </div>
       </main>

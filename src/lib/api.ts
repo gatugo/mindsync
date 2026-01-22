@@ -28,6 +28,35 @@ const mapGoalFromDB = (row: any): Goal => ({
 // --- API Functions ---
 
 export const api = {
+    // PROFILES
+    fetchProfile: async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 is 'not found', which is fine as valid user might not have profile yet
+            console.error('Error fetching profile:', error);
+            return null;
+        }
+
+        return data; // Returns { hobbies: [], show_goals: true, etc }
+    },
+
+    updateProfile: async (updates: any) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { error } = await supabase
+            .from('profiles')
+            .upsert({ id: user.id, ...updates });
+
+        if (error) console.error('Error updating profile:', error);
+    },
     // TASKS
     fetchTasks: async () => {
         const { data, error } = await supabase.from('tasks').select('*');

@@ -88,6 +88,7 @@ export interface StoreState {
     // Hydration / Sync
     _hasHydrated: boolean;
     fetchInitialData: () => Promise<void>;
+    resetStore: () => void;
 }
 
 // ============ HELPER FUNCTIONS ============
@@ -114,15 +115,33 @@ export const useStore = create<StoreState>((set, get) => ({
 
     fetchInitialData: async () => {
         try {
-            const [tasks, goals] = await Promise.all([
+            const [tasks, goals, profile] = await Promise.all([
                 api.fetchTasks(),
-                api.fetchGoals()
+                api.fetchGoals(),
+                api.fetchProfile()
             ]);
-            set({ tasks, goals, _hasHydrated: true });
+
+            const newPrefs = { ...get().preferences };
+            if (profile) {
+                if (profile.hobbies?.length) newPrefs.hobbies = profile.hobbies;
+                if (profile.interests?.length) newPrefs.interests = profile.interests;
+                if (profile.passions?.length) newPrefs.passions = profile.passions;
+            }
+
+            set({ tasks, goals, preferences: newPrefs, _hasHydrated: true });
         } catch (error) {
             console.error('Failed to fetch initial data:', error);
-            set({ _hasHydrated: true }); // Allow app to load even if fetch fails
+            set({ _hasHydrated: true });
         }
+    },
+
+    resetStore: () => {
+        set({
+            tasks: [],
+            history: [],
+            goals: [],
+            _hasHydrated: true // Keep true to avoid hydration mismatch
+        });
     },
 
     // Task actions
@@ -274,9 +293,18 @@ export const useStore = create<StoreState>((set, get) => ({
         api.deleteGoal(goalId);
     },
 
-    updatePreferences: (newPrefs) => set((state) => ({
-        preferences: { ...state.preferences, ...newPrefs }
-    })),
+    updatePreferences: (newPrefs) => {
+        set((state) => ({
+            preferences: { ...state.preferences, ...newPrefs }
+        }));
+
+        // Sync to Supabase Profile
+        api.updateProfile({
+            hobbies: newPrefs.hobbies,
+            interests: newPrefs.interests,
+            passions: newPrefs.passions
+        });
+    },
 
     // Calculated values (Unchanged)
     getDailyScore: () => {
