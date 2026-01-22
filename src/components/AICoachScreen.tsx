@@ -385,7 +385,11 @@ export default function AICoachScreen({
                     </div>
                     <div>
                         <h2 className="font-bold text-white">AI Coach</h2>
-                        <p className="text-xs text-white/50">Your MindSync guide</p>
+                        <div className="flex items-center gap-2 text-xs text-white/50">
+                            <span>Score: {score}</span>
+                            <span>•</span>
+                            <span>{balance === 'optimal' ? 'Optimal' : 'Check Balance'}</span>
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -570,11 +574,7 @@ export default function AICoachScreen({
                     </button>
                 </div>
 
-                {/* Compact Footer Info */}
-                <div className="flex items-center justify-between text-xs text-white/30 mt-2 px-1">
-                    <span>Score: {score}/100</span>
-                    <span>{balance === 'optimal' ? 'Balance: Optimal' : 'Balance Check Needed'}</span>
-                </div>
+
             </div>
         </div>
     );
