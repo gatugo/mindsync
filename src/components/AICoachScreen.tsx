@@ -551,7 +551,7 @@ export default function AICoachScreen({
             </div>
 
             {/* Chat Input (always visible for ease of access, but meaningful mainly for chat) */}
-            <div className="px-4 pt-4 pb-2 border-t border-white/10">
+            <div className="px-4 pt-4 pb-6 border-t border-white/10">
                 <div className="flex gap-3 items-stretch">
                     <div className="flex-1 relative">
                         <input

@@ -34,6 +34,7 @@ export default function Home() {
   const [showGoals, setShowGoals] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'stats' | 'coach' | 'settings'>('today');
   const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Zustand store
@@ -171,6 +172,18 @@ export default function Home() {
               </div>
 
               {/* New Task Button */}
+              {/* Smart Add Toggle */}
+              <button
+                onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
+                className={`p-2.5 rounded-full transition-all flex items-center justify-center border ${isQuickAddOpen
+                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-500 border-amber-200 dark:border-amber-700/50'
+                  : 'text-slate-400 hover:text-amber-500 border-transparent hover:bg-amber-50 dark:hover:bg-amber-900/10'
+                  }`}
+                title="AI Quick Add"
+              >
+                <span className="material-icons-round text-xl">bolt</span>
+              </button>
+
               {/* New Task Button */}
               <button
                 onClick={() => setIsAddTaskOpen(!isAddTaskOpen)}
@@ -212,7 +225,7 @@ export default function Home() {
         </header>
       )}
 
-      <main className={`max-w-md mx-auto p-4 flex flex-col overflow-hidden space-y-4 ${activeTab === 'today' ? 'h-[calc(100vh-140px)]' : 'h-[calc(100vh-80px)]'}`}>
+      <main className={`max-w-md mx-auto p-4 flex flex-col overflow-hidden space-y-4 ${activeTab === 'today' ? 'h-[calc(100dvh-140px)]' : 'h-[calc(100dvh-80px)]'}`}>
         {/* Main Content Area */}
         <div className="flex-1 overflow-hidden relative">
           {activeTab === 'today' && (
@@ -275,7 +288,12 @@ export default function Home() {
       />
 
       {/* Persistent Quick Add Bar (only on Today tab) */}
-      {activeTab === 'today' && <QuickAddBar onAdd={handleAddNewTask} />}
+      {activeTab === 'today' && isQuickAddOpen && (
+        <QuickAddBar
+          onAdd={handleAddNewTask}
+          onClose={() => setIsQuickAddOpen(false)}
+        />
+      )}
 
       {/* Bottom Navigation */}
       <BottomNav currentTab={activeTab} onTabChange={setActiveTab} />

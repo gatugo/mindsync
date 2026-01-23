@@ -7,9 +7,10 @@ import { TaskType } from '@/types';
 
 interface QuickAddBarProps {
     onAdd: (title: string, type: TaskType, date?: string, time?: string) => void;
+    onClose: () => void;
 }
 
-export default function QuickAddBar({ onAdd }: QuickAddBarProps) {
+export default function QuickAddBar({ onAdd, onClose }: QuickAddBarProps) {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const tasks = useStore((state) => state.tasks);
@@ -58,19 +59,28 @@ export default function QuickAddBar({ onAdd }: QuickAddBarProps) {
             // Add the task
             onAdd(taskTitle, suggestedType, suggestedDate, suggestedTime);
             setInput('');
+            onClose(); // Auto-close on success
         } catch (error) {
             console.error('Quick Add Error:', error);
             // Fallback: Add as basic ADULT task for today
             onAdd(taskTitle, 'ADULT', new Date().toISOString().split('T')[0]);
             setInput('');
+            onClose();
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2 pt-4 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0f172a] dark:via-[#0f172a] dark:to-transparent transition-all duration-300">
-            <div className="max-w-md mx-auto">
+        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2 pt-4 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0f172a] dark:via-[#0f172a] dark:to-transparent transition-all duration-300 animate-slide-up">
+            <div className="max-w-md mx-auto relative">
+                <button
+                    onClick={onClose}
+                    className="absolute -top-10 right-0 p-2 text-white/50 hover:text-white transition-colors bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm"
+                >
+                    <span className="material-icons-round text-sm">close</span>
+                </button>
+
                 <form onSubmit={handleSubmit} className="relative group">
                     <input
                         type="text"
@@ -78,6 +88,7 @@ export default function QuickAddBar({ onAdd }: QuickAddBarProps) {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Type to add (e.g., 'Gym at 5pm')..."
                         disabled={isLoading}
+                        autoFocus
                         className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-full py-3.5 pl-5 pr-12 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 shadow-lg shadow-indigo-500/10 transition-all"
                     />
                     <button

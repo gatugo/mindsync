@@ -17,6 +17,11 @@ This file tracks conversation history and progress across sessions.
 - **Navigation:**
     - Refined BottomNav and QuickAddBar with glassmorphism and subtle borders.
     - Improved scrollbar visibility in dark mode.
+- **Functionality:**
+    - Implemented **AI Quick Add Toggle**: Hidden by default, activated via new "Bolt" icon in header. Added auto-close behavior and manual close button.
+- **Mobile UX:**
+    - Fixed chat input cropping by using `100dvh` for proper viewport sizing on mobile browsers.
+    - Added safe-area padding to AI Coach input.
 
 ### Next Steps
 - [ ] AI System Synchronization (Action parsing)
