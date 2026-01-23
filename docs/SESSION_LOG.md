@@ -40,6 +40,10 @@ This file tracks conversation history and progress across sessions.
     - Switched to `@ducanh2912/next-pwa` for Next.js 15+ compatibility.
     - Configured `manifest.json` and build scripts.
     - App is now installable on mobile devices.
+- **Layout Fixes**:
+    - Converted "Today" view to use Flexbox layout.
+    - Extended Timeline to fill available vertical space on all devices (Mobile/Tablet/Desktop).
+    - Resolved double-scroll issues and extra bottom spacing.
 
 ### Next Steps
 - [ ] AI System Synchronization (Action parsing)

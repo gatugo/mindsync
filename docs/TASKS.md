@@ -41,6 +41,7 @@ Last Updated: January 20, 2026
 - [x] Navbar branding update & homepage link
 - [x] Kanban card actions visibility improvements (Mobile tap, Desktop always-visible)
 - [x] DatePicker: Fix mobile overflow (use centered modal)
+- [x] Timeline: Extend to full height (Flex layout) & fix double scroll
 - [x] AI Coach: Enhance system prompt with "The Three Brains" philosophy
 - [x] AI Coach: Refactor prompts into `src/lib/aiPrompts.ts`
 - [x] AI Coach: Fix production validation error (relax Zod schema)
