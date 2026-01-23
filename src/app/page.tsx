@@ -172,13 +172,13 @@ export default function Home() {
               {/* New Task Button */}
               <button
                 onClick={() => setIsAddTaskOpen(!isAddTaskOpen)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all shadow-lg active:scale-95 border border-white/10 ${isAddTaskOpen
+                className={`flex items-center gap-2 p-2.5 sm:px-5 sm:py-2.5 rounded-full font-semibold transition-all shadow-lg active:scale-95 border border-white/10 ${isAddTaskOpen
                   ? 'bg-slate-800 text-slate-300'
                   : 'bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] text-white hover:brightness-110 shadow-indigo-500/40'
                   }`}
               >
                 <span className={`material-icons-round text-xl transition-transform ${isAddTaskOpen ? 'rotate-45' : ''}`}>add</span>
-                <span className="whitespace-nowrap font-bold tracking-wide">New Task</span>
+                <span className="hidden sm:inline whitespace-nowrap font-bold tracking-wide">New Task</span>
               </button>
 
               {/* More Actions Dropdown */}

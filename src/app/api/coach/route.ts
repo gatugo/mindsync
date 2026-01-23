@@ -41,7 +41,44 @@ const CoachRequestSchema = z.object({
 
 type CoachRequest = z.infer<typeof CoachRequestSchema>;
 
-async function callGroq(prompt: string): Promise<string> {
+async function callGroqStream(prompt: string): Promise<ReadableStream> {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) throw new Error('GROQ_API_KEY not set');
+
+    const groq = new Groq({ apiKey });
+
+    const stream = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+            { role: 'system', content: COACH_SYSTEM_PROMPT },
+            { role: 'user', content: prompt },
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+        stream: true,
+    });
+
+    const encoder = new TextEncoder();
+    return new ReadableStream({
+        async start(controller) {
+            try {
+                for await (const chunk of stream) {
+                    const content = chunk.choices[0]?.delta?.content || '';
+                    if (content) {
+                        controller.enqueue(encoder.encode(content));
+                    }
+                }
+                controller.close();
+            } catch (err) {
+                console.error('Groq stream error:', err);
+                controller.error(err);
+            }
+        },
+    });
+}
+
+// Keeping non-streaming for JSON tasks (Smart Add)
+async function callGroqJSON(prompt: string): Promise<string> {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) throw new Error('GROQ_API_KEY not set');
 
@@ -53,21 +90,12 @@ async function callGroq(prompt: string): Promise<string> {
             { role: 'system', content: COACH_SYSTEM_PROMPT },
             { role: 'user', content: prompt },
         ],
+        response_format: { type: 'json_object' }, // Enforce JSON for smart add
         max_tokens: 500,
         temperature: 0.7,
     });
 
-    return completion.choices[0]?.message?.content || 'No response generated.';
-}
-
-async function generateResponse(prompt: string): Promise<string> {
-    try {
-        return await callGroq(prompt);
-    } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error('Groq call failed:', errorMsg);
-        throw new Error(`Groq error: ${errorMsg}`);
-    }
+    return completion.choices[0]?.message?.content || '{}';
 }
 
 function format12h(totalMinutes: number): string {
@@ -136,11 +164,18 @@ function buildPrompt(request: CoachRequest): string {
 - Interests: ${preferences.interests?.join(', ') || 'None'}
 - Passions: ${preferences.passions?.join(', ') || 'None'}` : '';
 
-    const commonContext = `Current Status:
-- Ego Score: ${score || 50}/100
-- Balance State: ${balance || 'neutral'}
-- Available Free Slots Today: ${availableSlots}
-${tasks ? `- Completed Today: ${tasks.filter(t => t.status === 'DONE' && t.type === 'ADULT').length} Adult, ${tasks.filter(t => t.status === 'DONE' && t.type === 'CHILD').length} Child` : ''}
+    const now = new Date();
+    const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const currentDateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const commonContext = `Current Context:
+- Date: ${currentDateStr}
+- Time: ${currentTimeStr} (Local)
+- Current Status:
+    - Ego Score: ${score || 50}/100
+    - Balance State: ${balance || 'neutral'}
+    - Available Free Slots Today: ${availableSlots}
+    ${tasks ? `- Completed Today: ${tasks.filter(t => t.status === 'DONE' && t.type === 'ADULT').length} Adult, ${tasks.filter(t => t.status === 'DONE' && t.type === 'CHILD').length} Child` : ''}
 User Profile:${prefsStr}`;
 
     switch (mode) {
@@ -211,17 +246,23 @@ Based on patterns and upcoming goals, suggest tomorrow's ideal distribution of A
         case 'schedule_assist': {
             const title = taskTitle || 'Untitled Task';
             const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
             return `You are a scheduling assistant. Given the task title below, analyze it and return ONLY a JSON object (no markdown, no explanation) with your suggestions.
 
 Task Title: "${title}"
 
-Today's Date: ${today}
-Available Slots Today: ${availableSlots}
+Current Context:
+- Date: ${today}
+- Time: ${currentTime}
+- Available Slots: ${availableSlots}
 
 Instructions:
+**CRITICAL**: If the user uses relative time like "in 30 mins" or "in 1 hour", calculate the 'suggestedTime' based on the Current Time (${currentTime}).
 1. Infer the task type: ADULT (work, productivity, responsibilities), CHILD (fun, hobbies, play), or REST (relaxation, self-care).
 2. Use today's date (shown above) for the suggestedDate field.
-3. Suggest a time: Pick an available slot. Use HH:MM format (24-hour).
+3. Suggest a time: Pick an available slot or the CALCULATED relative time. Use HH:MM format (24-hour).
 
 Respond with ONLY this JSON format (no other text):
 {"suggestedType": "ADULT", "suggestedDate": "${today}", "suggestedTime": "14:00"}`;
@@ -257,9 +298,33 @@ export async function POST(request: NextRequest) {
 
         const body = validationResult.data;
         const prompt = buildPrompt(body);
-        const response = await generateResponse(prompt);
 
-        return NextResponse.json({ success: true, response });
+        // STREAMING for Chat, Advice, Summary, Predict
+        if (body.mode !== 'schedule_assist') {
+            try {
+                const stream = await callGroqStream(prompt);
+                return new NextResponse(stream, {
+                    headers: {
+                        'Content-Type': 'text/event-stream',
+                        'Cache-Control': 'no-cache',
+                        'Connection': 'keep-alive',
+                    },
+                });
+            } catch (err) {
+                // Fallback for stream errors
+                return NextResponse.json({ success: false, error: 'Stream failed' }, { status: 500 });
+            }
+        }
+
+        // JSON for Schedule Assist (needs strict parsing)
+        else {
+            try {
+                const jsonResponse = await callGroqJSON(prompt);
+                return NextResponse.json({ success: true, response: jsonResponse });
+            } catch (err) {
+                return NextResponse.json({ success: false, error: 'JSON generation failed' }, { status: 500 });
+            }
+        }
     } catch (error) {
         console.error('AI Coach error:', error);
         const message = error instanceof Error ? error.message : 'Unknown error';

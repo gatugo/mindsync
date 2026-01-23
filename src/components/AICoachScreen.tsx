@@ -321,26 +321,48 @@ export default function AICoachScreen({
                         startTime: g.startTime,
                         completed: g.completed,
                     })),
-                    preferences, // Identify user hobbies/interests
+                    preferences,
                 }),
             });
 
-            const data = await res.json();
+            if (!res.body) throw new Error('No stream body');
 
-            if (data.success) {
-                const { cleanText, actions } = parseActions(data.response);
+            // Initialize empty AI message
+            const aiMsgId = (Date.now() + 1).toString();
+            setMessages(prev => [...prev, {
+                id: aiMsgId,
+                role: 'assistant',
+                content: '',
+                timestamp: new Date(),
+            }]);
 
-                const aiMsg: Message = {
-                    id: (Date.now() + 1).toString(),
-                    role: 'assistant',
-                    content: cleanText,
-                    timestamp: new Date(),
-                    actions: actions.length > 0 ? actions : undefined,
-                };
-                setMessages(prev => [...prev, aiMsg]);
-            } else {
-                setError(data.error || 'Failed to get response');
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                fullText += chunk;
+
+                // Update specific message in place
+                setMessages(prev => prev.map(msg =>
+                    msg.id === aiMsgId
+                        ? { ...msg, content: fullText }
+                        : msg
+                ));
             }
+
+            // Post-processing: Parse Actions after stream completes
+            const { cleanText, actions } = parseActions(fullText);
+            setMessages(prev => prev.map(msg =>
+                msg.id === aiMsgId
+                    ? { ...msg, content: cleanText, actions: actions.length > 0 ? actions : undefined }
+                    : msg
+            ));
+
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to connect to AI coach');
         } finally {

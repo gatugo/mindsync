@@ -32,6 +32,10 @@ This file tracks conversation history and progress across sessions.
     - **Secured Data Import/Export**: Moved sensitive actions to a "Data Management" modal.
     - **Restricted Access**: Data tools are now hidden for guest users and require login to access the management panel.
     - Added warning prompts to the Import action to prevent accidental overwrites.
+    - **Mobile UI**: Fixed top navigation crowding by compacting the "New Task" button on small screens.
+- **AI System Upgrades:**
+    - **Time Awareness**: Injected current local time into AI context, enabling relative scheduling (e.g., "Gym in 30 mins").
+    - **Streaming Responses**: Upgraded AI Coach to stream responses word-by-word for instant feedback.
 
 ### Next Steps
 - [ ] AI System Synchronization (Action parsing)
