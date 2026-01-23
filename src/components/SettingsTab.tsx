@@ -138,7 +138,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                                     <span className="material-icons-round text-cyan-500 bg-cyan-500/10 p-2 rounded-lg">file_upload</span>
                                     <div className="text-left">
                                         <div className="font-bold text-white text-sm">Export Report</div>
-                                        <div className="text-xs text-slate-400">Download CSV backup</div>
+                                        <div className="text-xs text-slate-400">Download JSON backup</div>
                                     </div>
                                 </div>
                                 <span className="material-icons-round text-slate-500 group-hover:text-white transition-colors">download</span>
