@@ -4,6 +4,25 @@ This file tracks conversation history and progress across sessions.
 
 ---
 
+## January 23, 2026 - Design Overhaul
+
+**Duration:** ~30 minutes
+**Focus:** UI Polish & "Deep Navy" Design Implementation
+
+### Accomplished
+- **Global Theme:** Deepened dark mode background colors for a premium feel.
+- **Header:**
+    - Redesigned "New Task" button with a vibrant gradient.
+    - Updated Score pill to a sleek, dark styling with hover effects.
+- **Navigation:**
+    - Refined BottomNav and QuickAddBar with glassmorphism and subtle borders.
+    - Improved scrollbar visibility in dark mode.
+
+### Next Steps
+- [ ] AI System Synchronization (Action parsing)
+
+---
+
 ## January 22, 2026 - Authentication & UX Improvements
 
 **Duration:** ~2 hours  

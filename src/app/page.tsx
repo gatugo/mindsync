@@ -160,24 +160,27 @@ export default function Home() {
 
             <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
               {/* Score Badge */}
-              <div className="flex items-center gap-2 sm:gap-3 bg-slate-100 dark:bg-slate-800 py-2 px-4 rounded-full border border-slate-200 dark:border-slate-700/50 score-glow">
-                <span className="text-xl">{getBalanceEmoji()}</span>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-lg font-bold text-slate-900 dark:text-white">{score}</span>
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:inline">Score</span>
+              {/* Score Badge */}
+              <div className="flex items-center gap-3 bg-[#1e293b] py-2 px-4 rounded-full border border-slate-700/50 score-glow relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="text-2xl drop-shadow-sm filter grayscale-[0.2] group-hover:grayscale-0 transition-all transform group-hover:scale-110 duration-200" role="img" aria-label="mood">{getBalanceEmoji()}</span>
+                <div className="flex flex-col leading-none">
+                  <span className="text-lg font-bold text-white tracking-tight">{score}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Score</span>
                 </div>
               </div>
 
               {/* New Task Button */}
+              {/* New Task Button */}
               <button
                 onClick={() => setIsAddTaskOpen(!isAddTaskOpen)}
-                className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-full font-semibold transition-all shadow-lg active:scale-95 ${isAddTaskOpen
-                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                  : 'bg-[#5c67ff] text-white hover:bg-opacity-90 shadow-[#5c67ff]/30'
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all shadow-lg active:scale-95 border border-white/10 ${isAddTaskOpen
+                  ? 'bg-slate-800 text-slate-300'
+                  : 'bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] text-white hover:brightness-110 shadow-indigo-500/40'
                   }`}
               >
-                <span className={`material-icons-round text-lg transition-transform ${isAddTaskOpen ? 'rotate-45' : ''}`}>add</span>
-                <span className="hidden sm:inline">New Task</span>
+                <span className={`material-icons-round text-xl transition-transform ${isAddTaskOpen ? 'rotate-45' : ''}`}>add</span>
+                <span className="whitespace-nowrap font-bold tracking-wide">New Task</span>
               </button>
 
               {/* More Actions Dropdown */}

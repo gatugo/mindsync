@@ -69,7 +69,7 @@ export default function QuickAddBar({ onAdd }: QuickAddBarProps) {
     };
 
     return (
-        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2 pt-4 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0f172a] dark:via-[#0f172a] dark:to-transparent">
+        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 pb-2 pt-4 bg-gradient-to-t from-white via-white to-transparent dark:from-[#0f172a] dark:via-[#0f172a] dark:to-transparent transition-all duration-300">
             <div className="max-w-md mx-auto">
                 <form onSubmit={handleSubmit} className="relative group">
                     <input

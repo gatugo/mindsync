@@ -9,7 +9,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 pb-safe z-50">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/5 pb-safe z-50 transition-all duration-300">
             <div className="flex items-center justify-around h-16 max-w-md mx-auto">
                 <button
                     onClick={() => onTabChange('today')}
