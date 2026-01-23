@@ -11,7 +11,7 @@ import EditTaskModal from '@/components/EditTaskModal';
 import GoalsPanel from '@/components/GoalsPanel';
 import TimelineView from '@/components/TimelineView';
 import BottomNav from '@/components/BottomNav';
-import QuickAddBar from '@/components/QuickAddBar';
+
 import AICoachScreen from '@/components/AICoachScreen';
 import SettingsTab from '@/components/SettingsTab';
 // ... (rest of imports)
@@ -34,7 +34,6 @@ export default function Home() {
   const [showGoals, setShowGoals] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'stats' | 'coach' | 'settings'>('today');
   const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
-  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Zustand store
@@ -161,7 +160,6 @@ export default function Home() {
 
             <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
               {/* Score Badge */}
-              {/* Score Badge */}
               <div className="flex items-center gap-3 bg-[#1e293b] py-2 px-4 rounded-full border border-slate-700/50 score-glow relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <span className="text-2xl drop-shadow-sm filter grayscale-[0.2] group-hover:grayscale-0 transition-all transform group-hover:scale-110 duration-200" role="img" aria-label="mood">{getBalanceEmoji()}</span>
@@ -170,19 +168,6 @@ export default function Home() {
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Score</span>
                 </div>
               </div>
-
-              {/* New Task Button */}
-              {/* Smart Add Toggle */}
-              <button
-                onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
-                className={`p-2.5 rounded-full transition-all flex items-center justify-center border ${isQuickAddOpen
-                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-500 border-amber-200 dark:border-amber-700/50'
-                  : 'text-slate-400 hover:text-amber-500 border-transparent hover:bg-amber-50 dark:hover:bg-amber-900/10'
-                  }`}
-                title="AI Quick Add"
-              >
-                <span className="material-icons-round text-xl">bolt</span>
-              </button>
 
               {/* New Task Button */}
               <button
@@ -286,14 +271,6 @@ export default function Home() {
         onClose={() => setIsAddTaskOpen(false)}
         onAdd={handleAddNewTask}
       />
-
-      {/* Persistent Quick Add Bar (only on Today tab) */}
-      {activeTab === 'today' && isQuickAddOpen && (
-        <QuickAddBar
-          onAdd={handleAddNewTask}
-          onClose={() => setIsQuickAddOpen(false)}
-        />
-      )}
 
       {/* Bottom Navigation */}
       <BottomNav currentTab={activeTab} onTabChange={setActiveTab} />

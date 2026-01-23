@@ -22,6 +22,10 @@ This file tracks conversation history and progress across sessions.
 - **Mobile UX:**
     - Fixed chat input cropping by using `100dvh` for proper viewport sizing on mobile browsers.
     - Added safe-area padding to AI Coach input.
+- **Simplification:**
+    - **Removed** the separate Quick Add bar and toggle to declutter the UI.
+    - **Integrated Smart Add**: Added a magic "Sparkle" button to the standard "New Task" panel. Users can now type natural language (e.g., "Gym at 5") and click Smart Add to auto-fill actions.
+    - Added visual highlighting for the current hour in the Timeline view.
 
 ### Next Steps
 - [ ] AI System Synchronization (Action parsing)

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X, ChevronDown, Bot, Loader2 } from 'lucide-react';
+import { Plus, X, ChevronDown, Bot, Loader2, Sparkles } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { TaskType } from '@/types';
 import TimePicker from './TimePicker';
@@ -74,10 +74,10 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
         }
     };
 
-    // AI-Assisted Scheduling
-    const handleAIAssist = async () => {
+    // AI-Assisted Scheduling (Smart Add)
+    const handleSmartAdd = async () => {
         if (!title.trim()) {
-            setAIError('Enter a task title first!');
+            setAIError('Enter a task description first!');
             return;
         }
 
@@ -91,14 +91,7 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                 body: JSON.stringify({
                     mode: 'schedule_assist',
                     taskTitle: title.trim(),
-                    tasks: tasks.map(t => ({
-                        type: t.type,
-                        status: t.status,
-                        title: t.title,
-                        scheduledDate: t.scheduledDate,
-                        scheduledTime: t.scheduledTime,
-                        duration: t.duration,
-                    })),
+                    tasks: [], // Minimal context for speed
                 }),
             });
 
@@ -108,28 +101,26 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                 throw new Error(data.error || 'AI request failed');
             }
 
-            // Parse the AI's JSON response
-            // The AI should return pure JSON, but sometimes it wraps it in markdown
             let jsonStr = data.response;
-            // Strip markdown code blocks if present
             jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
             const suggestion = JSON.parse(jsonStr);
 
-            // Apply suggestions
-            if (suggestion.suggestedType && ['ADULT', 'CHILD', 'REST'].includes(suggestion.suggestedType)) {
-                setType(suggestion.suggestedType as TaskType);
-            }
-            if (suggestion.suggestedDate) {
-                setDate(suggestion.suggestedDate);
-            }
-            if (suggestion.suggestedTime) {
-                setTime(suggestion.suggestedTime);
-            }
+            const newType = (suggestion.suggestedType && ['ADULT', 'CHILD', 'REST'].includes(suggestion.suggestedType))
+                ? suggestion.suggestedType
+                : 'ADULT';
+            const newDate = suggestion.suggestedDate || new Date().toISOString().split('T')[0];
+            const newTime = suggestion.suggestedTime;
+
+            // Immediately add the task
+            onAdd(title.trim(), newType as TaskType, newDate, newTime);
+
+            // Reset and close
+            setTitle(''); setDate(''); setTime(''); setAIError(null);
+            onClose();
 
         } catch (error) {
-            console.error('AI Assist error:', error);
-            setAIError(error instanceof Error ? error.message : 'Failed to get AI suggestion');
+            console.error('AI Smart Add error:', error);
+            setAIError(error instanceof Error ? error.message : 'Failed to smart add');
         } finally {
             setIsAILoading(false);
         }
@@ -162,7 +153,7 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                             type="text"
                             value={title}
                             onChange={(e) => { setTitle(e.target.value); setAIError(null); }}
-                            placeholder="What needs to be done?"
+                            placeholder="Type to add (e.g., 'Gym at 5pm')..."
                             className="w-full bg-transparent text-xl font-medium text-white placeholder:text-white/20 focus:outline-none py-2 pr-8"
                         />
                     </div>
@@ -239,19 +230,19 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
 
                         {/* Row 2: AI Button + Add Task */}
                         <div className="flex items-center justify-between gap-3">
-                            {/* AI Assist Button */}
+                            {/* AI Smart Add Button */}
                             <button
                                 type="button"
-                                onClick={handleAIAssist}
+                                onClick={handleSmartAdd}
                                 disabled={isAILoading || !title.trim()}
-                                title="AI Schedule Assist"
-                                className="p-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-purple-500/20"
+                                className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
                             >
                                 {isAILoading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
-                                    <Bot className="w-4 h-4" />
+                                    <Sparkles className="w-4 h-4" />
                                 )}
+                                <span>Smart Add</span>
                             </button>
 
                             {/* Add Button */}
