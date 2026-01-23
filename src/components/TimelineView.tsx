@@ -386,6 +386,12 @@ export default function TimelineView({
                             const maxDuration = Math.max(30, ...slotTasks.map(t => t.duration || 30));
                             const slotsSpan = Math.ceil(maxDuration / 30);
                             const minHeight = isHalfHour ? 60 : 80;
+
+                            // Highlight Logic
+                            const now = new Date();
+                            const isToday = formatDateKey(currentDate) === formatDateKey(now);
+                            const isCurrentHour = isToday && slot.hour === now.getHours();
+
                             return (
                                 <div
                                     key={slot.key}
@@ -394,9 +400,16 @@ export default function TimelineView({
                                     onDragLeave={() => setDragOverSlot(null)}
                                     onDrop={(e) => handleDrop(e, slot.key)}
                                     style={{ minHeight: `${minHeight * slotsSpan}px` }}
-                                    className={`flex border-b border-white/5 ${dragOverSlot === slot.key ? 'bg-indigo-500/10' : isHalfHour ? 'bg-slate-900/10' : ''}`}
+                                    className={`flex border-b border-white/5 relative ${dragOverSlot === slot.key
+                                            ? 'bg-indigo-500/10'
+                                            : isCurrentHour
+                                                ? 'bg-indigo-500/5 shadow-[inset_4px_0_0_0_#6366f1]'
+                                                : isHalfHour
+                                                    ? 'bg-slate-900/10'
+                                                    : ''
+                                        }`}
                                 >
-                                    <div className="w-20 shrink-0 flex flex-col items-center py-4 border-r border-white/5 bg-slate-900/20 text-white/30 text-xs font-bold">
+                                    <div className={`w-20 shrink-0 flex flex-col items-center py-4 border-r border-white/5 bg-slate-900/20 text-xs font-bold ${isCurrentHour ? 'text-indigo-400' : 'text-white/30'}`}>
                                         {formatTimeDisplay(slot.hour, slot.minute)}
                                     </div>
                                     <div className="flex-1 p-2 flex flex-wrap gap-2 content-start">
