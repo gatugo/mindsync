@@ -48,8 +48,8 @@ export default function TimelineView({
     const [isAILoading, setIsAILoading] = useState(false);
     const [aiError, setAIError] = useState<string | null>(null);
 
-    // AI Assist Logic
-    const handleAIAssist = async () => {
+    // AI-Assisted Scheduling (Smart Add)
+    const handleSmartAdd = async () => {
         if (!newTaskTitle.trim()) {
             setAIError('Enter title first');
             return;
@@ -65,21 +65,32 @@ export default function TimelineView({
                 body: JSON.stringify({
                     mode: 'schedule_assist',
                     taskTitle: newTaskTitle,
-                    tasks
+                    tasks: [] // Minimal context
                 })
             });
 
             const data = await response.json();
             if (data.success && data.response) {
                 let jsonStr = data.response;
-                if (jsonStr.includes('```json')) {
-                    jsonStr = jsonStr.replace(/```json\n?|\n?```/g, '');
-                }
+                jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
                 const suggestion = JSON.parse(jsonStr);
 
-                if (suggestion.suggestedType) setNewTaskType(suggestion.suggestedType);
-                // Note: We ignore date/time suggestions here because user clicked specific slot
-                // effectively overriding the AI's time suggestion with their chosen slot
+                const suggestedType = (suggestion.suggestedType && ['ADULT', 'CHILD', 'REST'].includes(suggestion.suggestedType))
+                    ? suggestion.suggestedType
+                    : newTaskType || 'ADULT';
+
+                // If AI suggests a specific time (e.g. user typed "Lunch at 1pm"), use it.
+                // Otherwise fallback to the slot the user clicked on.
+                const finalTime = suggestion.suggestedTime || creatingSlot;
+                const finalDate = suggestion.suggestedDate || formatDateKey(currentDate);
+
+                // Immediate Add
+                onAddTask(newTaskTitle.trim(), suggestedType as TaskType, finalDate, finalTime);
+
+                // Close modal
+                setCreatingSlot(null);
+                setNewTaskTitle('');
+                setNewTaskType('ADULT');
             }
         } catch (err) {
             console.error(err);
@@ -493,10 +504,10 @@ export default function TimelineView({
                                             placeholder="What needs to be done?"
                                         />
                                         <button
-                                            onClick={handleAIAssist}
+                                            onClick={handleSmartAdd}
                                             disabled={isAILoading || !newTaskTitle.trim()}
                                             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-purple-500/20"
-                                            title="AI Auto-Fill Type"
+                                            title="Smart Add"
                                         >
                                             {isAILoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                         </button>
