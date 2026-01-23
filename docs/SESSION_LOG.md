@@ -26,6 +26,7 @@ This file tracks conversation history and progress across sessions.
     - **Removed** the separate Quick Add bar and toggle to declutter the UI.
     - **Integrated Smart Add**: Added a magic "Sparkle" button to the standard "New Task" panel. Users can now type natural language (e.g., "Gym at 5") and click Smart Add to auto-fill actions.
     - Added visual highlighting for the current hour in the Timeline view.
+    - Added **15-minute duration** option to task creation and editing.
 
 ### Next Steps
 - [ ] AI System Synchronization (Action parsing)
