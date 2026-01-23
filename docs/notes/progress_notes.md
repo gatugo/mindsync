@@ -18,10 +18,12 @@
     -   Replaced personal user data in `src/store/useStore.ts` with generic placeholders (Reading, Hiking, etc.) to prepare the codebase for public repository sharing.
     -   **Local Override**: Configured the app to read personal preferences from `.env.local` (specifically `NEXT_PUBLIC_USER_HOBBIES`, etc.). This allows you to keep your personal context active locally while pushing safe, generic code to GitHub.
 
+### Jan 23, 2026 - AI Sync & Polish
+- **Time Awareness**: AI now knows the exact local time for relative scheduling.
+- **Streaming**: AI responses now stream word-by-word.
+- **Mobile Header**: Fixed crowding by compacting buttons.
+- **Security**: Secured data import/export behind a login-gated modal.
+
 ### Future Plans / Next Steps
-*   **AI <-> Kanban/Timeline Integration**:
-    *   **Goal**: Allow the AI to directly modify the board state (move cards, create complex tasks with sub-steps).
-    *   **Status**: Awaiting specific user examples/use-cases to design the interaction model.
-    *   **Tech**: Will likely involve expanding the `[ACTION: CREATE_TASK]` parsing logic in `AICoachModal` or a dedicated middleware.
-*   **Optimization**:
-    *   Refine the prompt further based on real-world usage to prevent "hallucinations" of completed tasks.
+*   **PWA**: Re-enable PWA for home screen installation.
+*   **Notifications**: Add push notifications.
