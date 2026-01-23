@@ -363,7 +363,7 @@ export default function TimelineView({
 
 
     return (
-        <div className="bg-slate-800/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl flex flex-col h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-slate-800/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl flex flex-col h-full flex-1 min-h-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div className="p-4 border-b border-white/5 bg-slate-900/40 flex flex-col gap-4 sm:flex-row justify-between items-center shrink-0">
                 <div className="flex items-center gap-4 w-full sm:w-auto justify-between">

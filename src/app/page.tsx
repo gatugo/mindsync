@@ -214,7 +214,7 @@ export default function Home() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-hidden relative">
           {activeTab === 'today' && (
-            <div className="h-full overflow-y-auto custom-scrollbar pb-24">
+            <div className="h-full flex flex-col overflow-hidden pb-4">
               {showGoals && (
                 <GoalsPanel
                   goals={goals}
@@ -225,14 +225,16 @@ export default function Home() {
                   onClose={() => setShowGoals(false)}
                 />
               )}
-              <TimelineView
-                tasks={tasks}
-                onMoveTask={moveTask}
-                onDeleteTask={deleteTask}
-                onUpdateTask={updateTask}
-                onAddTask={addTask}
-                onEditTask={setEditingTask}
-              />
+              <div className="flex-1 min-h-0 mt-4">
+                <TimelineView
+                  tasks={tasks}
+                  onMoveTask={moveTask}
+                  onDeleteTask={deleteTask}
+                  onUpdateTask={updateTask}
+                  onAddTask={addTask}
+                  onEditTask={setEditingTask}
+                />
+              </div>
             </div>
           )}
 
