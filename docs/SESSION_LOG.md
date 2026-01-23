@@ -36,6 +36,10 @@ This file tracks conversation history and progress across sessions.
 - **AI System Upgrades:**
     - **Time Awareness**: Injected current local time into AI context, enabling relative scheduling (e.g., "Gym in 30 mins").
     - **Streaming Responses**: Upgraded AI Coach to stream responses word-by-word for instant feedback.
+- **PWA Re-enabled**:
+    - Switched to `@ducanh2912/next-pwa` for Next.js 15+ compatibility.
+    - Configured `manifest.json` and build scripts.
+    - App is now installable on mobile devices.
 
 ### Next Steps
 - [ ] AI System Synchronization (Action parsing)
