@@ -14,7 +14,10 @@ interface SettingsTabProps {
 }
 
 export default function SettingsTab({ showGoals, setShowGoals, handleImport, handleExport }: SettingsTabProps) {
+    const [user, setUser] = useState<any>(null);
     const [showDataModal, setShowDataModal] = useState(false);
+    const router = useRouter();
+    const { resetStore } = useStore();
 
     useEffect(() => {
         const getUser = async () => {
