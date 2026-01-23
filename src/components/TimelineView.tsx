@@ -18,6 +18,7 @@ const typeConfig: Record<TaskType, { emoji: string; bg: string; border: string; 
 };
 
 const DURATION_OPTIONS = [
+    { value: 15, label: '15m' },
     { value: 30, label: '30m' },
     { value: 60, label: '1h' },
     { value: 90, label: '1.5h' },
@@ -401,12 +402,12 @@ export default function TimelineView({
                                     onDrop={(e) => handleDrop(e, slot.key)}
                                     style={{ minHeight: `${minHeight * slotsSpan}px` }}
                                     className={`flex border-b border-white/5 relative ${dragOverSlot === slot.key
-                                            ? 'bg-indigo-500/10'
-                                            : isCurrentHour
-                                                ? 'bg-indigo-500/5 shadow-[inset_4px_0_0_0_#6366f1]'
-                                                : isHalfHour
-                                                    ? 'bg-slate-900/10'
-                                                    : ''
+                                        ? 'bg-indigo-500/10'
+                                        : isCurrentHour
+                                            ? 'bg-indigo-500/5 shadow-[inset_4px_0_0_0_#6366f1]'
+                                            : isHalfHour
+                                                ? 'bg-slate-900/10'
+                                                : ''
                                         }`}
                                 >
                                     <div className={`w-20 shrink-0 flex flex-col items-center py-4 border-r border-white/5 bg-slate-900/20 text-xs font-bold ${isCurrentHour ? 'text-indigo-400' : 'text-white/30'}`}>

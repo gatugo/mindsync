@@ -21,6 +21,7 @@ const typeConfig: Record<TaskType, { emoji: string; label: string; bg: string }>
 };
 
 const durations = [
+    { label: '15m', value: 15 },
     { label: '30m', value: 30 },
     { label: '1h', value: 60 },
     { label: '1.5h', value: 90 },
