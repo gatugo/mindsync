@@ -28,6 +28,10 @@ This file tracks conversation history and progress across sessions.
     - Added visual highlighting for the current hour in the Timeline view.
     - Added **15-minute duration** option to task creation and editing.
     - Upgraded **Timeline creation modal** to use **Smart Add** (auto-submit) for consistency with the main panel.
+- **Security:**
+    - **Secured Data Import/Export**: Moved sensitive actions to a "Data Management" modal.
+    - **Restricted Access**: Data tools are now hidden for guest users and require login to access the management panel.
+    - Added warning prompts to the Import action to prevent accidental overwrites.
 
 ### Next Steps
 - [ ] AI System Synchronization (Action parsing)

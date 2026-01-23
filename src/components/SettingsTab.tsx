@@ -14,9 +14,7 @@ interface SettingsTabProps {
 }
 
 export default function SettingsTab({ showGoals, setShowGoals, handleImport, handleExport }: SettingsTabProps) {
-    const [user, setUser] = useState<any>(null);
-    const router = useRouter();
-    const { resetStore } = useStore();
+    const [showDataModal, setShowDataModal] = useState(false);
 
     useEffect(() => {
         const getUser = async () => {
@@ -34,7 +32,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
     };
 
     return (
-        <div className="h-full p-4 space-y-6">
+        <div className="h-full p-4 space-y-6 relative">
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">Settings</h2>
 
             {/* Account Panel */}
@@ -66,7 +64,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                         </div>
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-white">Guest Mode</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in to sync your data across devices</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in to securely sync & backup data</p>
                         </div>
                         <Link
                             href="/login"
@@ -94,30 +92,88 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                 </button>
             </div>
 
-            {/* Data Management */}
-            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl space-y-3">
-                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data</h3>
-                <button
-                    onClick={handleImport}
-                    className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                >
-                    <span className="material-icons-round text-emerald-500">file_download</span>
-                    <span className="font-medium text-slate-700 dark:text-slate-200">Import Data</span>
-                </button>
-                <button
-                    onClick={handleExport}
-                    className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                >
-                    <span className="material-icons-round text-cyan-500">file_upload</span>
-                    <span className="font-medium text-slate-700 dark:text-slate-200">Export Report</span>
-                </button>
-            </div>
+            {/* Data Management (Protected) */}
+            {user && (
+                <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
+                    <button
+                        onClick={() => setShowDataModal(true)}
+                        className="flex items-center justify-between w-full group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="material-icons-round text-slate-400 group-hover:text-indigo-400 transition-colors">dns</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-200">Data Management</span>
+                        </div>
+                        <span className="material-icons-round text-slate-400">chevron_right</span>
+                    </button>
+                </div>
+            )}
 
             {/* App Info */}
             <div className="text-center text-sm text-slate-400 pt-4">
                 <p>MindSync</p>
                 <p className="text-xs">Sync. Focus. Flow.</p>
             </div>
+
+            {/* Data Management Modal */}
+            {showDataModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowDataModal(false)}>
+                    <div className="bg-slate-900 border border-white/10 w-full max-w-sm rounded-2xl shadow-2xl p-6 space-y-6 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="text-center space-y-2">
+                            <div className="w-12 h-12 bg-indigo-500/20 rounded-full mx-auto flex items-center justify-center">
+                                <span className="material-icons-round text-indigo-400 text-2xl">dns</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-white">Data Management</h3>
+                            <p className="text-sm text-slate-400">Securely manage your MindSync data</p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => { handleExport(); setShowDataModal(false); }}
+                                className="flex items-center justify-between w-full p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 transition-colors group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="material-icons-round text-cyan-500 bg-cyan-500/10 p-2 rounded-lg">file_upload</span>
+                                    <div className="text-left">
+                                        <div className="font-bold text-white text-sm">Export Report</div>
+                                        <div className="text-xs text-slate-400">Download CSV backup</div>
+                                    </div>
+                                </div>
+                                <span className="material-icons-round text-slate-500 group-hover:text-white transition-colors">download</span>
+                            </button>
+
+                            <button
+                                onClick={() => { handleImport(); setShowDataModal(false); }}
+                                className="flex items-center justify-between w-full p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 transition-colors group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="material-icons-round text-emerald-500 bg-emerald-500/10 p-2 rounded-lg">file_download</span>
+                                    <div className="text-left">
+                                        <div className="font-bold text-white text-sm">Import Data</div>
+                                        <div className="text-xs text-slate-400">Restore from backup</div>
+                                    </div>
+                                </div>
+                                <span className="material-icons-round text-slate-500 group-hover:text-white transition-colors">upload</span>
+                            </button>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/10">
+                            <div className="flex gap-2 items-start p-3 bg-amber-500/10 rounded-lg">
+                                <span className="material-icons-round text-amber-500 text-sm mt-0.5">warning</span>
+                                <p className="text-[10px] text-amber-200/80 leading-snug">
+                                    Importing data will <strong>overwrite</strong> your current tasks. Make sure to export a backup first.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowDataModal(false)}
+                            className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium transition-colors"
+                        >
+                            Done
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
