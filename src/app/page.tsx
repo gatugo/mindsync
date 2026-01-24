@@ -291,6 +291,7 @@ export default function Home() {
               history={history}
               goals={goals}
               initialMode={activeTab === 'coach' ? activeCoachMode : 'advice'}
+              onClose={() => setActiveTab('today')}
             />
           )}
 
