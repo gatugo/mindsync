@@ -43,41 +43,88 @@ const CoachRequestSchema = z.object({
 
 type CoachRequest = z.infer<typeof CoachRequestSchema>;
 
-async function callGroqStream(prompt: string): Promise<ReadableStream> {
+async function callGroqStream(prompt: string, retryCount = 0): Promise<ReadableStream> {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) throw new Error('GROQ_API_KEY not set');
 
     const groq = new Groq({ apiKey });
+    const MAX_RETRIES = 2;
 
-    const stream = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-            { role: 'system', content: COACH_SYSTEM_PROMPT },
-            { role: 'user', content: prompt },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-        stream: true,
-    });
+    try {
+        console.log(`[Groq] Starting stream request (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`);
 
-    const encoder = new TextEncoder();
-    return new ReadableStream({
-        async start(controller) {
-            try {
-                for await (const chunk of stream) {
-                    const content = chunk.choices[0]?.delta?.content || '';
-                    if (content) {
-                        controller.enqueue(encoder.encode(content));
+        const stream = await groq.chat.completions.create({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+                { role: 'system', content: COACH_SYSTEM_PROMPT },
+                { role: 'user', content: prompt },
+            ],
+            max_tokens: 1000,
+            temperature: 0.7,
+            stream: true,
+        });
+
+        const encoder = new TextEncoder();
+        let hasReceivedData = false;
+
+        return new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of stream) {
+                        const content = chunk.choices[0]?.delta?.content || '';
+                        if (content) {
+                            hasReceivedData = true;
+                            controller.enqueue(encoder.encode(content));
+                        }
+                    }
+
+                    if (!hasReceivedData) {
+                        console.warn('[Groq] Stream completed but received no data');
+                        controller.enqueue(encoder.encode('I apologize, but I was unable to generate a response. Please try again.'));
+                    }
+
+                    controller.close();
+                } catch (streamErr) {
+                    console.error('[Groq] Stream iteration error:', streamErr);
+
+                    // If we haven't sent any data yet, we can retry
+                    if (!hasReceivedData && retryCount < MAX_RETRIES) {
+                        console.log('[Groq] Retrying stream...');
+                        controller.error(new Error('RETRY_STREAM'));
+                    } else {
+                        // Send error message to client gracefully
+                        controller.enqueue(encoder.encode('\n\n⚠️ Connection interrupted. Please try again.'));
+                        controller.close();
                     }
                 }
+            },
+        });
+    } catch (apiErr: any) {
+        console.error('[Groq] API call error:', apiErr?.message || apiErr);
+
+        // Handle rate limiting
+        if (apiErr?.status === 429) {
+            console.warn('[Groq] Rate limited. Waiting 2s before retry...');
+            await new Promise(r => setTimeout(r, 2000));
+        }
+
+        // Retry logic
+        if (retryCount < MAX_RETRIES) {
+            console.log(`[Groq] Retrying (attempt ${retryCount + 2}/${MAX_RETRIES + 1})...`);
+            return callGroqStream(prompt, retryCount + 1);
+        }
+
+        // Final fallback: return a simple error stream
+        const encoder = new TextEncoder();
+        return new ReadableStream({
+            start(controller) {
+                controller.enqueue(encoder.encode('⚠️ AI Coach is temporarily unavailable. Please try again in a moment.'));
                 controller.close();
-            } catch (err) {
-                console.error('Groq stream error:', err);
-                controller.error(err);
             }
-        },
-    });
+        });
+    }
 }
+
 
 // Keeping non-streaming for JSON tasks (Smart Add)
 async function callGroqJSON(prompt: string): Promise<string> {
@@ -286,18 +333,20 @@ PROPOSE A PERFECT PLAN for the next 24 hours.
 1. Identify 2-3 high-impact tasks.
 2. Schedule them into the "Available Free Slots" listed above.
 3. Ensure a mix of Adult (work/discipline) and Child (passion/fun).
+4. Estimate the projected impact on the user's Ego Score for each task.
 
-For each specific task you suggest, you MUST use the ACTION block format:
-[ACTION: CREATE_TASK | Title | Type | Duration | Date | Time]
+For each specific task you suggest, you MUST use the ACTION block format with projected score:
+[ACTION: CREATE_TASK | Title | Type | Duration | Date | Time | ProjectedScore]
 
 Example response:
 "Based on your current low Child score, I've scheduled some creative time tonight. I also see you have a goal due soon, so I've blocked out your deep work slot tomorrow morning.
 
-[ACTION: CREATE_TASK | Deep Work: Goal Progress | ADULT | 90 | ${currentDateKey} | 09:00]
-[ACTION: CREATE_TASK | Fun: Guitar Session | CHILD | 45 | ${currentDateKey} | 19:00]"
+[ACTION: CREATE_TASK | Deep Work: Goal Progress | ADULT | 90 | ${currentDateKey} | 09:00 | +8]
+[ACTION: CREATE_TASK | Fun: Guitar Session | CHILD | 45 | ${currentDateKey} | 19:00 | +5]"
 
-BE BOLD. Prescribe the time. Don't be vague.`;
+BE BOLD. Prescribe the time. Don't be vague. Always include the projected score (+1 to +10 for positive, -1 to -5 for negative if applicable).`;
         }
+
 
         case 'schedule_assist': {
             const title = taskTitle || 'Untitled Task';

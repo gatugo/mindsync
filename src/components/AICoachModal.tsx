@@ -78,6 +78,11 @@ export default function AICoachModal({
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const clearChat = () => {
+        setMessages([]);
+        setError('');
+    };
+
     useEffect(() => {
         if (isOpen) scrollToBottom();
     }, [messages, isLoading, isOpen]);
@@ -121,7 +126,7 @@ export default function AICoachModal({
         const actions: SuggestedAction[] = [];
         const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/gi;
         const cleanText = text.replace(actionRegex, (match, content) => {
-            const parts = content.split('|').map(p => p.trim());
+            const parts = content.split('|').map((p: string) => p.trim());
             if (parts.length >= 4) {
                 actions.push({
                     type: 'CREATE_TASK',

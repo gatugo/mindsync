@@ -25,6 +25,7 @@ interface SuggestedAction {
     duration: number;
     scheduledDate?: string;
     scheduledTime?: string;
+    projectedScore?: number; // Predicted impact on Ego Score (+5, -3, etc.)
 }
 
 interface Message {
@@ -156,17 +157,27 @@ export default function AICoachScreen({
 
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
-        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/gi;
+        // Extended regex to capture optional projected score: [ACTION: CREATE_TASK | Title | Type | Duration | Date | Time | +5]
+        const actionRegex = /\[ACTION: CREATE_TASK \| ([^\]]+)\]/gi;
         const cleanText = text.replace(actionRegex, (match, content) => {
-            const parts = content.split('|').map(p => p.trim());
+            const parts = content.split('|').map((p: string) => p.trim());
             if (parts.length >= 4) {
+                // Parse projected score if present (last part starting with + or -)
+                let projectedScore: number | undefined;
+                const lastPart = parts[parts.length - 1];
+                if (/^[+-]\d+$/.test(lastPart)) {
+                    projectedScore = parseInt(lastPart);
+                    parts.pop(); // Remove score from parts array
+                }
+
                 actions.push({
                     type: 'CREATE_TASK',
                     title: parts[0],
                     taskType: parts[1] as TaskType,
                     duration: parseInt(parts[2]) || 30,
-                    scheduledDate: parts.length === 6 ? parts[4] : (parts.length === 5 ? parts[3] : undefined),
-                    scheduledTime: parts.length === 6 ? parts[5] : (parts.length === 5 ? parts[4] : parts[3]),
+                    scheduledDate: parts.length >= 5 ? parts[3] : undefined,
+                    scheduledTime: parts.length >= 5 ? parts[4] : parts[3],
+                    projectedScore,
                 });
             }
             return '';
@@ -335,6 +346,11 @@ export default function AICoachScreen({
                                                     <h4 className="font-bold text-sm flex items-center gap-2">
                                                         <span>{colors.emoji}</span>
                                                         <span>{action.title}</span>
+                                                        {action.projectedScore && (
+                                                            <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${action.projectedScore > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                                {action.projectedScore > 0 ? '+' : ''}{action.projectedScore} Score
+                                                            </span>
+                                                        )}
                                                     </h4>
                                                     <div className={`text-[10px] font-bold uppercase tracking-wider ${colors.text} mt-1.5 flex items-center gap-2 opacity-80`}>
                                                         <span>{action.taskType}</span>
@@ -349,6 +365,7 @@ export default function AICoachScreen({
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={(e) => {
