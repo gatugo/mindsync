@@ -178,6 +178,88 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                         </div>
                     )}
 
+                    {/* Natural Language Preview (Smart Detection) */}
+                    {title.trim() && (() => {
+                        // Inline Helper for Formatting
+                        const format12h = (timeStr: string) => {
+                            const [h, m] = timeStr.split(':').map(Number);
+                            const ampm = h >= 12 ? 'pm' : 'am';
+                            const displayH = h % 12 || 12;
+                            const displayM = m === 0 ? '' : `:${m.toString().padStart(2, '0')}`;
+                            return `${displayH}${displayM}${ampm}`;
+                        };
+
+                        // Improved Parser (locally scoped to avoid clutter, or could be utils)
+                        const parseNaturalDateTime = (input: string) => {
+                            const clean = input.toLowerCase().trim();
+                            const now = new Date();
+                            let targetDate = new Date(now);
+                            let targetTime: string | undefined;
+
+                            const months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
+                            const dateMatch = clean.match(new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`));
+
+                            if (dateMatch) {
+                                const day = parseInt(dateMatch[1]);
+                                const monthStr = clean.match(new RegExp(`(${months})`))![0];
+                                const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(monthStr.substring(0, 3));
+                                targetDate.setMonth(monthIndex);
+                                targetDate.setDate(day);
+                                if (targetDate < new Date(new Date().setHours(0, 0, 0, 0))) {
+                                    targetDate.setFullYear(targetDate.getFullYear() + 1);
+                                }
+                            } else if (clean.includes('tomorrow')) {
+                                targetDate.setDate(targetDate.getDate() + 1);
+                            } else if (clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)) {
+                                const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                                const targetDayName = clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)![1];
+                                const targetDayIndex = dayNames.indexOf(targetDayName);
+                                const currentDayIndex = targetDate.getDay();
+                                let daysToAdd = targetDayIndex - currentDayIndex;
+                                if (daysToAdd <= 0) daysToAdd += 7;
+                                targetDate.setDate(targetDate.getDate() + daysToAdd);
+                            }
+
+                            let timeSearchStr = clean;
+                            if (dateMatch) timeSearchStr = clean.replace(dateMatch[0], '');
+
+                            const timeMatch = timeSearchStr.match(/(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+                            if (timeMatch) {
+                                let h = parseInt(timeMatch[1]);
+                                const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+                                const ampm = timeMatch[3];
+                                if (ampm === 'pm' && h < 12) h += 12;
+                                if (ampm === 'am' && h === 12) h = 0;
+                                if (h >= 0 && h < 24 && m >= 0 && m < 60) {
+                                    targetTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                                }
+                            }
+
+                            const year = targetDate.getFullYear();
+                            const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(targetDate.getDate()).padStart(2, '0');
+                            const dateStr = `${year}-${month}-${day}`;
+                            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+                            return { date: dateStr !== todayStr ? dateStr : undefined, time: targetTime };
+                        };
+
+                        const parsed = parseNaturalDateTime(title);
+                        if (parsed.date || parsed.time) {
+                            return (
+                                <div className="text-xs text-indigo-300/80 flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2 animate-in fade-in slide-in-from-top-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    <span>
+                                        Detected: {parsed.date && `${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+                                        {parsed.date && parsed.time && ' @ '}
+                                        {parsed.time && format12h(parsed.time)}
+                                    </span>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
+
                     {/* Details Section - Responsive Layout */}
                     <div className="flex flex-col gap-3 sm:gap-5">
                         {/* Row 1: Type, Date, Time */}
