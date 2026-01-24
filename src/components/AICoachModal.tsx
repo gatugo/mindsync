@@ -14,6 +14,7 @@ interface AICoachModalProps {
     balance: string;
     history: DailySnapshot[];
     goals: Goal[];
+    initialMode?: CoachMode;
 }
 
 type CoachMode = 'advice' | 'chat' | 'summary' | 'predict';
@@ -43,8 +44,9 @@ export default function AICoachModal({
     balance,
     history,
     goals,
+    initialMode = 'advice'
 }: AICoachModalProps) {
-    const [mode, setMode] = useState<CoachMode>('advice');
+    const [mode, setMode] = useState<CoachMode>(initialMode);
     const [question, setQuestion] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +55,18 @@ export default function AICoachModal({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const addTask = useStore((state) => state.addTask);
     const preferences = useStore((state) => state.preferences);
+    const hasAutoTriggered = useRef(false);
+
+    useEffect(() => {
+        if (isOpen && initialMode) setMode(initialMode);
+    }, [isOpen, initialMode]);
+
+    useEffect(() => {
+        if (isOpen && initialMode && initialMode !== 'advice' && !hasAutoTriggered.current) {
+            handleAskCoach(initialMode);
+            hasAutoTriggered.current = true;
+        }
+    }, [isOpen, initialMode]);
 
     const handleSuggestAnother = (action: SuggestedAction) => {
         const prompt = `I'd like another suggestion for "${action.title}". Provide an alternative task of type ${action.taskType} that would fit my schedule for ${action.scheduledDate || 'today'}.`;
@@ -64,555 +78,184 @@ export default function AICoachModal({
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Simple Markdown Renderer for AI responses
-    const renderMarkdown = (text: string): ReactNode => {
-        // Split into paragraphs (double newlines)
-        const paragraphs = text.split(/\n\n+/);
+    useEffect(() => {
+        if (isOpen) scrollToBottom();
+    }, [messages, isLoading, isOpen]);
 
+    const renderMarkdown = (text: string): ReactNode => {
+        const paragraphs = text.split(/\n\n+/);
         return paragraphs.map((paragraph, pIdx) => {
-            // Check if it's a list (starts with - or * or • or 1. 2. etc)
             const lines = paragraph.split('\n');
             const isBulletList = lines.every(line => line.trim() === '' || /^[-*•]\s/.test(line.trim()));
-            const isNumberedList = lines.every(line => line.trim() === '' || /^\d+[.)]\s/.test(line.trim()));
-
             if (isBulletList) {
                 const listItems = lines.filter(line => /^[-*•]\s/.test(line.trim()));
                 return (
                     <ul key={pIdx} className="list-disc list-inside space-y-1 my-2">
                         {listItems.map((item, idx) => (
-                            <li key={idx} className="text-white/90">
-                                {renderInlineMarkdown(item.replace(/^[-*•]\s+/, ''))}
-                            </li>
+                            <li key={idx} className="text-white/90">{renderInlineMarkdown(item.replace(/^[-*•]\s+/, ''))}</li>
                         ))}
                     </ul>
                 );
             }
-
-            if (isNumberedList) {
-                const listItems = lines.filter(line => /^\d+[.)]\s/.test(line.trim()));
-                return (
-                    <ol key={pIdx} className="list-decimal list-inside space-y-1 my-2">
-                        {listItems.map((item, idx) => (
-                            <li key={idx} className="text-white/90">
-                                {renderInlineMarkdown(item.replace(/^\d+[.)]\s+/, ''))}
-                            </li>
-                        ))}
-                    </ol>
-                );
-            }
-
-            // Check for inline list items separated by line breaks (not double breaks)
-            const hasLineBreaks = paragraph.includes('\n');
-            if (hasLineBreaks) {
-                return (
-                    <div key={pIdx} className="mb-3 last:mb-0 space-y-1">
-                        {lines.filter(l => l.trim()).map((line, idx) => (
-                            <p key={idx}>{renderInlineMarkdown(line)}</p>
-                        ))}
-                    </div>
-                );
-            }
-
-            // Regular paragraph with inline formatting
-            return (
-                <p key={pIdx} className="mb-3 last:mb-0">
-                    {renderInlineMarkdown(paragraph)}
-                </p>
-            );
+            return <p key={pIdx} className="mb-3 last:mb-0">{renderInlineMarkdown(paragraph)}</p>;
         });
     };
 
-    // Handle inline markdown: **bold**, *italic*, `code`
     const renderInlineMarkdown = (text: string): ReactNode => {
         const parts: ReactNode[] = [];
         let lastIndex = 0;
-
-        // Match **bold**, *italic*, and `code`
         const regex = /(\*\*(.+?)\*\*)|(\*(.+?)\*)|(\`(.+?)\`)/g;
         let match;
-
         while ((match = regex.exec(text)) !== null) {
-            // Add text before the match
-            if (match.index > lastIndex) {
-                parts.push(text.slice(lastIndex, match.index));
-            }
-
-            if (match[1]) { // **bold**
-                parts.push(<strong key={match.index} className="font-semibold text-white">{match[2]}</strong>);
-            } else if (match[3]) { // *italic*
-                parts.push(<em key={match.index} className="italic">{match[4]}</em>);
-            } else if (match[5]) { // `code`
-                parts.push(<code key={match.index} className="bg-white/10 px-1.5 py-0.5 rounded text-indigo-300 text-xs">{match[6]}</code>);
-            }
-
+            if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+            if (match[1]) parts.push(<strong key={match.index} className="font-semibold text-white">{match[2]}</strong>);
+            else if (match[3]) parts.push(<em key={match.index} className="italic">{match[4]}</em>);
+            else if (match[5]) parts.push(<code key={match.index} className="bg-white/10 px-1.5 py-0.5 rounded text-indigo-300 text-xs">{match[6]}</code>);
             lastIndex = match.index + match[0].length;
         }
-
-        // Add remaining text
-        if (lastIndex < text.length) {
-            parts.push(text.slice(lastIndex));
-        }
-
+        if (lastIndex < text.length) parts.push(text.slice(lastIndex));
         return parts.length > 0 ? parts : text;
     };
-
-    // Natural Language Date/Time Parser
-    const _deprecated_parseNaturalDateTime = (input: string): { date?: string; time?: string } => {
-        const clean = input.toLowerCase().trim();
-        const now = new Date();
-        let targetDate = new Date(now);
-        let targetTime: string | undefined;
-
-        // 1. Extract Date first (so we don't confuse date numbers with time)
-        const months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
-        const dateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`);
-        const dateMatch = clean.match(dateRegex);
-
-        if (dateMatch) {
-            const day = parseInt(dateMatch[1]);
-            const monthStr = clean.match(new RegExp(`(${months})`))![0];
-            const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(monthStr.substring(0, 3));
-            targetDate.setMonth(monthIndex);
-            targetDate.setDate(day);
-            if (targetDate < new Date(new Date().setHours(0, 0, 0, 0))) {
-                targetDate.setFullYear(targetDate.getFullYear() + 1);
-            }
-        }
-        else if (clean.includes('tomorrow')) {
-            targetDate.setDate(targetDate.getDate() + 1);
-        } else if (clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)) {
-            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-            const targetDayName = clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)![1];
-            const targetDayIndex = dayNames.indexOf(targetDayName);
-            const currentDayIndex = targetDate.getDay();
-            let daysToAdd = targetDayIndex - currentDayIndex;
-            if (daysToAdd <= 0) daysToAdd += 7;
-            targetDate.setDate(targetDate.getDate() + daysToAdd);
-        }
-
-        // 2. Extract Time
-        let timeSearchStr = clean;
-        if (dateMatch) {
-            timeSearchStr = clean.replace(dateMatch[0], '');
-        }
-
-        const timeMatch = timeSearchStr.match(/(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
-        if (timeMatch) {
-            let h = parseInt(timeMatch[1]);
-            const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-            const ampm = timeMatch[3];
-
-            if (ampm === 'pm' && h < 12) h += 12;
-            if (ampm === 'am' && h === 12) h = 0;
-
-            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-                targetTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-            }
-        }
-
-        const year = targetDate.getFullYear();
-        const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-        const day = String(targetDate.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-        return {
-            date: dateStr !== todayStr ? dateStr : undefined,
-            time: targetTime
-        };
-    };
-
-
 
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
         const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/gi;
-
         const cleanText = text.replace(actionRegex, (match, content) => {
-            const parts = content.split('|').map((p: string) => p.trim());
-
+            const parts = content.split('|').map(p => p.trim());
             if (parts.length >= 4) {
-                const title = parts[0];
-                const type = parts[1] as TaskType;
-                const duration = parseInt(parts[2]) || 30;
-                let date: string | undefined;
-                let time: string | undefined;
-
-                if (parts.length === 5) {
-                    date = parts[3];
-                    time = parts[4];
-                } else {
-                    time = parts[3];
-                }
-
-                // Note: SuggestedAction interface in Modal might need scheduledDate update if we want to use it? 
-                // The Modal interface (lines 20-26) says: scheduledTime?: string. It misses scheduledDate! 
-                // I should update interface too but let's stick to parsing for now.
-                // Re-using scheduledTime for now or ignoring date if interface doesn't support it.
-                // Wait, if I don't add scheduledDate to interface, I lose the date info.
-
                 actions.push({
                     type: 'CREATE_TASK',
-                    title,
-                    taskType: type,
-                    duration,
-                    scheduledDate: date === 'any' ? undefined : date,
-                    scheduledTime: parseNaturalDateTime(time || '').time,
-                    // scheduledDate missing in interface?
+                    title: parts[0],
+                    taskType: parts[1] as TaskType,
+                    duration: parseInt(parts[2]) || 30,
+                    scheduledDate: parts.length === 6 ? parts[4] : (parts.length === 5 ? parts[3] : undefined),
+                    scheduledTime: parts.length === 6 ? parts[5] : (parts.length === 5 ? parts[4] : parts[3]),
                 });
             }
             return '';
         });
-
         return { cleanText, actions };
     };
 
     const handleExecuteAction = (action: SuggestedAction, messageId: string) => {
         if (action.type === 'CREATE_TASK') {
             const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const localDateKey = `${year}-${month}-${day}`;
-
-            const targetDate = action.scheduledDate || localDateKey;
-
-            addTask(
-                action.title,
-                action.taskType,
-                targetDate,
-                action.scheduledTime,
-                action.duration
-            );
+            addTask(action.title, action.taskType, action.scheduledDate || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`, action.scheduledTime, action.duration);
         }
     };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, isLoading]);
 
     const handleAskCoach = async (selectedMode?: CoachMode) => {
         const activeMode = selectedMode || mode;
-        const currentQuestion = question;
-
-        if (activeMode === 'chat' && currentQuestion.trim()) {
-            const userMsg: Message = {
-                id: Date.now().toString(),
-                role: 'user',
-                content: currentQuestion,
-                timestamp: new Date(),
-            };
-            setMessages(prev => [...prev, userMsg]);
+        if (activeMode === 'chat' && question.trim()) {
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: question, timestamp: new Date() }]);
             setQuestion('');
         }
-
         setIsLoading(true);
         setIsTyping(true);
         setError('');
-
         try {
-            // Capture Local Time context
             const now = new Date();
             const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const localTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
             const res = await fetch('/api/coach', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mode: activeMode,
-                    localDate,
-                    localTime,
-                    tasks: tasks.map((t) => ({
-                        type: t.type,
-                        status: t.status,
-                        title: t.title,
-                        scheduledDate: t.scheduledDate,
-                        scheduledTime: t.scheduledTime,
-                        duration: t.duration
-                    })),
-                    score,
-                    balance,
-                    question: activeMode === 'chat' ? currentQuestion : undefined,
-                    conversationHistory: messages.slice(-6).map(m => ({ role: m.role, content: m.content })),
-                    history: history.map((h) => ({
-                        date: h.date,
-                        score: h.score,
-                        adultCompleted: h.adultCompleted,
-                        childCompleted: h.childCompleted,
-                    })),
-                    goals: goals.map((g) => ({
-                        title: g.title,
-                        targetDate: g.targetDate,
-                        startTime: g.startTime,
-                        completed: g.completed,
-                    })),
-                    preferences, // Identify user hobbies/interests
-                }),
+                body: JSON.stringify({ mode: activeMode, localDate, localTime, tasks, score, balance, question: activeMode === 'chat' ? question : undefined, conversationHistory: messages.slice(-6).map(m => ({ role: m.role, content: m.content })), history, goals, preferences }),
             });
-
-            const data = await res.json();
-
-            if (data.success) {
-                const { cleanText, actions } = parseActions(data.response);
-
-                const aiMsg: Message = {
-                    id: (Date.now() + 1).toString(),
-                    role: 'assistant',
-                    content: cleanText,
-                    timestamp: new Date(),
-                    actions: actions.length > 0 ? actions : undefined,
-                };
-                setMessages(prev => [...prev, aiMsg]);
-            } else {
-                setError(data.error || 'Failed to get response');
+            if (!res.body) throw new Error('No stream body');
+            const aiMsgId = (Date.now() + 1).toString();
+            setMessages(prev => [...prev, { id: aiMsgId, role: 'assistant', content: '', timestamp: new Date() }]);
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                fullText += decoder.decode(value, { stream: true });
+                setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, content: fullText } : msg));
             }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to connect to AI coach');
-        } finally {
-            setIsLoading(false);
-            setIsTyping(false);
-        }
-    };
-
-    const deleteMessage = (id: string) => {
-        setMessages(prev => prev.filter(msg => msg.id !== id));
-    };
-
-    const clearChat = () => {
-        setMessages([]);
-        setError('');
+            const { cleanText, actions } = parseActions(fullText);
+            setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, content: cleanText, actions: actions.length > 0 ? actions : undefined } : msg));
+        } catch (err) { setError(err instanceof Error ? err.message : 'Failed'); }
+        finally { setIsLoading(false); setIsTyping(false); }
     };
 
     if (!isOpen) return null;
 
-    const modeButtons = [
-        { mode: 'advice' as CoachMode, icon: Sparkles, label: 'Quick Advice' },
-        { mode: 'chat' as CoachMode, icon: MessageCircle, label: 'Ask Question' },
-        { mode: 'summary' as CoachMode, icon: TrendingUp, label: 'Weekly Summary' },
-        { mode: 'predict' as CoachMode, icon: Bot, label: 'Tomorrow Plan' },
-    ];
-
-
-
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div className="bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col border border-white/10 overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <div className="flex items-center justify-between p-5 border-b border-white/10 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <Bot className="w-6 h-6 text-white" />
-                        </div>
+                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20"><Bot className="w-6 h-6 text-white" /></div>
                         <div>
-                            <h2 className="font-bold text-white">AI Coach</h2>
-                            <p className="text-xs text-white/50">Your MindSync guide</p>
+                            <h2 className="font-bold text-white text-lg">AI Coach</h2>
+                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">MindSync Guide</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        {messages.length > 0 && (
-                            <button
-                                onClick={clearChat}
-                                className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-red-400 transition-colors"
-                                title="Clear Chat"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
-                        )}
-                        <button
-                            onClick={onClose}
-                            className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
+                        {messages.length > 0 && <button onClick={clearChat} className="p-2.5 rounded-xl hover:bg-white/10 text-white/40 hover:text-red-400"><Trash2 className="w-5 h-5" /></button>}
+                        <button onClick={onClose} className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all"><X className="w-5 h-5" /></button>
                     </div>
                 </div>
 
-                {/* Mode Selector */}
-                <div className="p-4 grid grid-cols-2 gap-2">
-                    {modeButtons.map(({ mode: btnMode, icon: Icon, label }) => (
-                        <button
-                            key={btnMode}
-                            onClick={() => {
-                                setMode(btnMode);
-                                if (btnMode !== 'chat') {
-                                    handleAskCoach(btnMode);
-                                }
-                            }}
-                            className={`flex items-center gap-2 p-3 rounded-xl transition-all ${mode === btnMode
-                                ? 'bg-indigo-500 text-white'
-                                : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
-                                }`}
-                        >
-                            <Icon className="w-4 h-4" />
-                            <span className="text-sm font-medium">{label}</span>
+                {/* Modes */}
+                <div className="p-3 grid grid-cols-4 gap-1.5 border-b border-white/5 bg-slate-800/20">
+                    {[
+                        { mode: 'chat', icon: MessageCircle, label: 'Chat' },
+                        { mode: 'advice', icon: Sparkles, label: 'Advice' },
+                        { mode: 'summary', icon: TrendingUp, label: 'Stats' },
+                        { mode: 'predict', icon: Bot, label: 'Plan' }
+                    ].map((btn) => (
+                        <button key={btn.mode} onClick={() => { setMode(btn.mode as CoachMode); if (btn.mode !== 'chat') handleAskCoach(btn.mode as CoachMode); }} className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${mode === btn.mode ? 'bg-indigo-500 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}>
+                            <btn.icon className="w-4 h-4" />
+                            <span className="text-[10px] font-bold uppercase">{btn.label}</span>
                         </button>
                     ))}
                 </div>
 
-                {/* Messages Area */}
-                <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                    {messages.length === 0 && !isLoading && !error && (
-                        <div className="text-center text-white/40 py-8">
-                            Select a mode above or ask a question to get started
-                        </div>
-                    )}
-
+                {/* Messages */}
+                <div className="flex-1 p-5 overflow-y-auto space-y-6">
                     {messages.map((msg) => (
-                        <div
-                            key={msg.id}
-                            className={`flex items-start gap-3 group ${msg.role === 'user' ? 'flex-row-reverse' : ''
-                                }`}
-                        >
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-lg ${msg.role === 'user'
-                                ? 'bg-gradient-to-br from-indigo-500 to-indigo-600'
-                                : 'bg-gradient-to-br from-purple-500 to-indigo-600'
-                                }`}>
-                                {msg.role === 'user' ? (
-                                    <User className="w-4 h-4 text-white" />
-                                ) : (
-                                    <Bot className="w-4 h-4 text-white" />
-                                )}
-                            </div>
-
-                            <div className={`relative max-w-[90%] sm:max-w-[80%] rounded-2xl p-3 sm:p-4 shadow-xl ${msg.role === 'user'
-                                ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white'
-                                : 'bg-gradient-to-br from-slate-800/90 to-slate-800/60 backdrop-blur-sm text-white/95 border border-white/10'
-                                }`}>
-                                <div className="text-sm leading-relaxed">{renderMarkdown(msg.content)}</div>
-                                <button
-                                    onClick={() => deleteMessage(msg.id)}
-                                    className={`absolute -top-2 p-1 rounded-full bg-slate-700/80 backdrop-blur text-white/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shadow-lg ${msg.role === 'user' ? '-left-2' : '-right-2'
-                                        }`}
-                                    title="Delete message"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </div>
-
-                            {/* Action Buttons */}
-                            {
-                                msg.actions && msg.actions.length > 0 && (
-                                    <div className="flex flex-col gap-2 mt-1 -ml-11 pl-14 w-full">
-                                        {msg.actions.map((action, idx) => (
-                                            <div key={idx} className="flex flex-col gap-2">
-                                                <button
-                                                    key={idx}
-                                                    onClick={(e) => {
-                                                        const btn = e.currentTarget;
-                                                        handleExecuteAction(action, msg.id);
-                                                        btn.disabled = true;
-                                                        btn.innerHTML = '<span>Added to Schedule</span>';
-                                                        btn.classList.add('opacity-50', 'cursor-not-allowed');
-                                                    }}
-                                                    className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-xl text-sm transition-all border border-emerald-500/20 w-fit text-left group/btn"
-                                                >
-                                                    <PlusCircle className="w-4 h-4" />
-                                                    <span>Add Task: <strong>{action.title}</strong> ({action.taskType}){action.scheduledTime ? ` @ ${format12h(action.scheduledTime)}` : ''}</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSuggestAnother(action)}
-                                                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white px-4 py-1.5 rounded-xl text-xs transition-all border border-white/5 w-fit"
-                                                >
-                                                    <RotateCw className="w-3.5 h-3.5" />
-                                                    <span>Suggest Another</span>
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )
-                            }
-                        </div>
-                    ))}
-
-                    {isLoading && (
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
-                                <Bot className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="bg-white/5 rounded-2xl p-4">
-                                <div className="flex gap-1.5">
-                                    <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce" />
-                                    <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce [animation-delay:0.1s]" />
-                                    <div className="w-2 h-2 bg-white/40 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div key={msg.id} className="space-y-4">
+                            <div className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-purple-600'}`}>
+                                    {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                                </div>
+                                <div className={`max-w-[85%] rounded-2xl p-4 shadow-xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-slate-800 border border-white/10 text-white/95'}`}>
+                                    {renderMarkdown(msg.content)}
                                 </div>
                             </div>
+                            {msg.actions && (
+                                <div className="ml-11 space-y-3">
+                                    {msg.actions.map((action, idx) => (
+                                        <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                            <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                                                <span>{action.taskType === 'CHILD' ? '🩷' : '🔵'}</span>
+                                                <span>{action.title}</span>
+                                            </h4>
+                                            <div className="flex gap-2">
+                                                <button onClick={(e) => { handleExecuteAction(action, msg.id); e.currentTarget.disabled = true; e.currentTarget.innerHTML = 'Added'; }} className="flex-1 bg-indigo-500 text-white py-2 rounded-xl text-xs font-bold border border-white/10">Add to Timeline</button>
+                                                <button onClick={() => handleSuggestAnother(action)} className="flex-1 bg-white/5 text-white/70 py-2 rounded-xl text-xs font-bold border border-white/10">Another</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    )}
-
-                    {error && (
-                        <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 text-red-200">
-                            <p className="font-medium">Error</p>
-                            <p className="text-sm mt-1 text-red-200/80">{error}</p>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
+                    ))}
+                    <div ref={messagesEndRef} className="h-4" />
                 </div>
 
-                {/* Chat Input (always visible for ease of access, but meaningful mainly for chat) */}
-                <div className="p-4 border-t border-white/10">
-                    <div className="flex gap-3 items-stretch">
-                        <div className="flex-1 relative">
-                            <input
-                                type="text"
-                                value={question}
-                                onChange={(e) => setQuestion(e.target.value)}
-                                onFocus={() => {
-                                    if (mode !== 'chat') {
-                                        setMode('chat');
-                                    }
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        if (question.trim()) {
-                                            handleAskCoach('chat');
-                                            setMode('chat');
-                                        }
-                                    }
-                                }}
-                                placeholder="Type a message or ask a question..."
-                                className="w-full h-14 bg-slate-800/50 border border-slate-700/50 rounded-2xl px-5 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all font-medium"
-                            />
-                            {/* Natural Language Preview */}
-                            {question.trim() && (() => {
-                                const parsed = parseNaturalDateTime(question);
-                                if (parsed.date || parsed.time) {
-                                    return (
-                                        <div className="absolute bottom-2 left-5 text-xs text-indigo-300 flex items-center gap-2">
-                                            <Sparkles className="w-3 h-3" />
-                                            <span>
-                                                Detected: {parsed.date && `${new Date(parsed.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
-                                                {parsed.date && parsed.time && ' @ '}
-                                                {parsed.time && format12h(parsed.time)}
-                                            </span>
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })()}
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                handleAskCoach('chat');
-                                setMode('chat');
-                            }}
-                            disabled={!question.trim() || isLoading}
-                            className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
-                            aria-label="Send Message"
-                        >
-                            <Send className="w-6 h-6" />
-                        </button>
-                    </div>
-
-                    {/* Compact Footer Info */}
-                    <div className="flex items-center justify-between text-xs text-white/30 mt-3 px-1">
-                        <span>Score: {score}/100</span>
-                        <span>{balance === 'optimal' ? 'Balance: Optimal' : 'Balance Check Needed'}</span>
+                {/* Input */}
+                <div className="p-5 border-t border-white/10 bg-slate-900">
+                    <div className="flex gap-3">
+                        <input value={question} onChange={e => setQuestion(e.target.value)} onFocus={() => mode !== 'chat' && setMode('chat')} placeholder="Type a message..." className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                        <button onClick={() => handleAskCoach('chat')} className="h-12 w-12 rounded-2xl bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20"><Send className="w-5 h-5" /></button>
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }
