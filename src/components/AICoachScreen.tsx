@@ -12,6 +12,7 @@ interface AICoachScreenProps {
     balance: string;
     history: DailySnapshot[];
     goals: Goal[];
+    initialMode?: CoachMode;
 }
 
 type CoachMode = 'advice' | 'chat' | 'summary' | 'predict';
@@ -39,8 +40,9 @@ export default function AICoachScreen({
     balance,
     history,
     goals,
+    initialMode = 'advice'
 }: AICoachScreenProps) {
-    const [mode, setMode] = useState<CoachMode>('advice');
+    const [mode, setMode] = useState<CoachMode>(initialMode);
     const [question, setQuestion] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +51,14 @@ export default function AICoachScreen({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const addTask = useStore((state) => state.addTask);
     const preferences = useStore((state) => state.preferences);
+    const hasAutoTriggered = useRef(false);
+
+    useEffect(() => {
+        if (initialMode && initialMode !== 'advice' && !hasAutoTriggered.current) {
+            handleAskCoach(initialMode);
+            hasAutoTriggered.current = true;
+        }
+    }, [initialMode]);
 
     const handleSuggestAnother = (action: SuggestedAction) => {
         const prompt = `I'd like another suggestion for "${action.title}". Provide an alternative task of type ${action.taskType} that would fit my schedule for ${action.scheduledDate || 'today'}.`;

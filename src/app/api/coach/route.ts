@@ -280,7 +280,23 @@ Provide a brief summary of my week's patterns and one key insight from the MindS
 Active Goals:
 ${goalsStr || 'No active goals'}
 
-Based on patterns and upcoming goals, suggest tomorrow's ideal distribution of Adult (Independence/Future) and Child (Passion/HOBBIES) tasks.`;
+You are the authoritative "Daily Architect". Analyze the user's current balance, their sleep schedule (${preferences?.sleepStartTime || '23:00'} - ${preferences?.sleepEndTime || '06:00'}), and their unfinished goals.
+
+PROPOSE A PERFECT PLAN for the next 24 hours. 
+1. Identify 2-3 high-impact tasks.
+2. Schedule them into the "Available Free Slots" listed above.
+3. Ensure a mix of Adult (work/discipline) and Child (passion/fun).
+
+For each specific task you suggest, you MUST use the ACTION block format:
+[ACTION: CREATE_TASK | Title | Type | Duration | Date | Time]
+
+Example response:
+"Based on your current low Child score, I've scheduled some creative time tonight. I also see you have a goal due soon, so I've blocked out your deep work slot tomorrow morning.
+
+[ACTION: CREATE_TASK | Deep Work: Goal Progress | ADULT | 90 | ${currentDateKey} | 09:00]
+[ACTION: CREATE_TASK | Fun: Guitar Session | CHILD | 45 | ${currentDateKey} | 19:00]"
+
+BE BOLD. Prescribe the time. Don't be vague.`;
         }
 
         case 'schedule_assist': {

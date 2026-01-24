@@ -33,6 +33,7 @@ export default function Home() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showGoals, setShowGoals] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'plan' | 'stats' | 'coach' | 'settings'>('today');
+  const [activeCoachMode, setActiveCoachMode] = useState<'advice' | 'chat' | 'summary' | 'predict'>('advice');
   const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -257,7 +258,10 @@ export default function Home() {
               </div>
               <div className="absolute bottom-6 left-0 right-0 flex justify-center px-6 pointer-events-none z-20">
                 <button
-                  onClick={() => setActiveTab('coach')}
+                  onClick={() => {
+                    setActiveCoachMode('predict');
+                    setActiveTab('coach');
+                  }}
                   className="pointer-events-auto bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold shadow-2xl shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 border border-white/20 group"
                 >
                   <span className="material-icons-round text-2xl group-hover:rotate-12 transition-transform">auto_awesome</span>
@@ -286,6 +290,7 @@ export default function Home() {
               balance={balance}
               history={history}
               goals={goals}
+              initialMode={activeTab === 'coach' ? activeCoachMode : 'advice'}
             />
           )}
 
@@ -307,7 +312,15 @@ export default function Home() {
       />
 
       {/* Bottom Navigation */}
-      <BottomNav currentTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav
+        currentTab={activeTab}
+        onTabChange={(tab) => {
+          if (tab === 'coach' && activeTab !== 'coach') {
+            setActiveCoachMode('advice');
+          }
+          setActiveTab(tab);
+        }}
+      />
 
 
 
