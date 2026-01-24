@@ -23,6 +23,7 @@ interface SuggestedAction {
     title: string;
     taskType: TaskType;
     duration: number;
+    scheduledDate?: string;
     scheduledTime?: string;
 }
 
@@ -249,6 +250,7 @@ export default function AICoachModal({
                     title,
                     taskType: type,
                     duration,
+                    scheduledDate: date === 'any' ? undefined : date,
                     scheduledTime: parseNaturalDateTime(time || '').time,
                     // scheduledDate missing in interface?
                 });
@@ -261,18 +263,18 @@ export default function AICoachModal({
 
     const handleExecuteAction = (action: SuggestedAction, messageId: string) => {
         if (action.type === 'CREATE_TASK') {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
             const localDateKey = `${year}-${month}-${day}`;
 
-            // If we had a date, we would use it here. For now defaulting to today as before, unless I update interface.
+            const targetDate = action.scheduledDate || localDateKey;
 
             addTask(
                 action.title,
                 action.taskType,
-                localDateKey,
+                targetDate,
                 action.scheduledTime,
                 action.duration
             );
