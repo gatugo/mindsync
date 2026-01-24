@@ -57,9 +57,15 @@ export default function AICoachScreen({
 
     useEffect(() => {
         if (initialMode && initialMode !== 'advice' && !hasAutoTriggered.current) {
+            setMode(initialMode);
             handleAskCoach(initialMode);
             hasAutoTriggered.current = true;
         }
+    }, [initialMode]);
+
+    // Ensure mode state syncs with initialMode on first mount
+    useEffect(() => {
+        if (initialMode) setMode(initialMode);
     }, [initialMode]);
 
     const handleSuggestAnother = (action: SuggestedAction) => {
@@ -450,11 +456,11 @@ export default function AICoachScreen({
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                     {messages.length > 0 && (
                         <button
                             onClick={clearChat}
-                            className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-red-400 transition-colors"
+                            className="p-2 rounded-xl hover:bg-white/10 text-white/40 hover:text-red-400 transition-all active:scale-90"
                             title="Clear Chat"
                         >
                             <Trash2 className="w-5 h-5" />
@@ -463,7 +469,7 @@ export default function AICoachScreen({
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-90 flex items-center justify-center"
                             title="Exit Coach"
                         >
                             <X className="w-5 h-5" />
@@ -577,29 +583,30 @@ export default function AICoachScreen({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2 w-full mt-4">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            const btn = e.currentTarget;
-                                                            handleExecuteAction(action, msg.id);
-                                                            btn.disabled = true;
-                                                            btn.innerHTML = '<span>Added</span>';
-                                                            btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/20');
-                                                            btn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600', 'text-white');
-                                                        }}
-                                                        className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 border border-indigo-400/20"
-                                                    >
-                                                        <PlusCircle className="w-4 h-4" />
-                                                        Add to Timeline
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleSuggestAnother(action)}
-                                                        className="flex-1 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10"
-                                                    >
-                                                        <RotateCw className="w-3.5 h-3.5" />
-                                                        Suggest Another
-                                                    </button>
-                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col sm:flex-row gap-2 w-full mt-4">
+                                                <button
+                                                    onClick={(e) => {
+                                                        const btn = e.currentTarget;
+                                                        handleExecuteAction(action, msg.id);
+                                                        btn.disabled = true;
+                                                        btn.innerHTML = '<span>Added to Timeline</span>';
+                                                        btn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/20');
+                                                        btn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600', 'text-white');
+                                                    }}
+                                                    className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 border border-indigo-400/20 active:scale-[0.98]"
+                                                >
+                                                    <PlusCircle className="w-4 h-4" />
+                                                    Add to Timeline
+                                                </button>
+                                                <button
+                                                    onClick={() => handleSuggestAnother(action)}
+                                                    className="flex-1 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10 active:scale-[0.98]"
+                                                >
+                                                    <RotateCw className="w-3.5 h-3.5" />
+                                                    Suggest Another
+                                                </button>
                                             </div>
                                         </div>
                                     );
