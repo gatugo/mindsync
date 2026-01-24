@@ -2,24 +2,20 @@
 **Date:** 2026-01-24
 
 ## 🚀 Accomplishments
-- **authoritative Planning Mode**: Refined the `api/coach` prompt to use a "Daily Architect" persona. It now specifically targets free slots and incorporates sleep schedules.
+- **Stable AI Coach API**: Fixed 500 errors by adding robust retry logic (2 attempts) and rate-limit handling to the Groq stream implementation.
+- **Projected Impact UI**: Implemented `projectedScore` logic across full stack. Task cards now display badges like **+5 Score** to show predicted impact.
+- **Improved New Task UX**: 
+  - Added a backdrop click handler to close the "New Task" modal (fixed stack ordering z-index 60/70).
+  - Maintained "click inside to type" functionality.
+- **Navigation Cleanup**: Removed the redundant "Plan" tab. Planning is now exclusively accessed via the **AI Coach > Plan** button for a cleaner flow.
 - **Header UX Overhaul**: 
-  - Added a permanent **Exit (X) Icon** next to the **Trash (Clear)** icon in `AICoachScreen.tsx` and `AICoachModal.tsx`.
-  - Functional separation: X returns to 'Today' tab (preserving state), Trash wipes conversation.
-- **Re-Designed Suggestion Cards**:
-  - Implemented side-by-side, equal-width buttons: **[ Add to Timeline ]** and **[ Suggest Another ]**.
-  - Improved mobile ergonomics by ensuring buttons take the full width of the card.
-- **Reliable 'Plan My Day' Trigger**: Optimized `page.tsx` and `AICoachScreen.tsx` to ensure clicking the Plan button auto-starts the "Plan" mode immediately.
-- **Diagnostic Logging**: Added verbose server-side logs in `route.ts` to identify 500 errors during streaming.
+  - Added permanent **Exit (X) Icon** and separated it from **Trash (Clear)** icon.
+  - Implemented authoritative "Daily Architect" persona for better advice quality.
 
 ## 🛠️ Technical Fixes
-- Re-wrote `AICoachScreen` and `AICoachModal` from scratch to resolve persistent layout issues where buttons were hidden or misaligned.
-- Synchronized `initialMode` state transition to ensure the UI highlights the correct mode active in the coach.
+- **TypeScript**: Fixed missing `clearChat` function and implicit `any` type in `AICoachModal.tsx`.
+- **Config**: Added empty `turbopack: {}` to `next.config.ts` to suppress dev warnings.
+- **API**: Enhanced `route.ts` with detailed logging and fallback to non-streaming JSON if streams fail.
 
-## ⚠️ Pending / Next Session
-- **Server Debugging**: The `npm run dev` command showed Port 3000 in use by process 16200. Next session should free up the port or use the 3001 instance.
-- **API Failure Diagnosis**: Monitor terminal logs for "Starting Groq stream for mode: predict". If 500 errors persist, investigate the Groq SDK streaming connection.
-- **Projected Impact implementation**: The backend is ready to send projected impact scores; the frontend UI for these badges is the next logical step.
-
-## 📝 Notes for Next Version
-- User is currently seeing a cached or production version (`npm start`). **Must run `npm run dev`** to verify these latest UI/UX shifts.
+## ⚠️ Notes for Next Version
+- **Important**: If you see old UI (e.g. Plan tab still visible), **Hard Refresh (Ctrl+F5)** or clear browser cache. The code changes are verified on disk but the Service Worker (PWA) cache might be sticky.
