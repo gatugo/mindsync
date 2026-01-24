@@ -128,7 +128,50 @@ async function callGroqStream(prompt: string, retryCount = 0): Promise<ReadableS
 }
 
 
+// Adapting Gemini stream to ReadableStream
+async function callGeminiStream(prompt: string): Promise<ReadableStream> {
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) throw new Error('GOOGLE_API_KEY not set');
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    // Use gemini-2.0-flash as established
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    console.log('[Gemini] Starting stream request...');
+
+    try {
+        const streamingResponse = await model.generateContentStream([
+            COACH_SYSTEM_PROMPT,
+            prompt
+        ]);
+
+        const encoder = new TextEncoder();
+
+        return new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of streamingResponse.stream) {
+                        const chunkText = chunk.text();
+                        if (chunkText) {
+                            controller.enqueue(encoder.encode(chunkText));
+                        }
+                    }
+                    controller.close();
+                } catch (err) {
+                    console.error('[Gemini] Stream iteration error:', err);
+                    controller.error(err);
+                }
+            }
+        });
+    } catch (err) {
+        console.error('[Gemini] Stream init error:', err);
+        throw err;
+    }
+}
+
+
 // Keeping non-streaming for JSON tasks (Smart Add)
+
 async function callGroqJSON(prompt: string, retryCount = 0): Promise<string> {
     const apiKey = process.env.GROQ_API_KEY;
     const MAX_RETRIES = 2;
@@ -459,9 +502,14 @@ export async function POST(request: NextRequest) {
 
         // STREAMING for Chat, Advice, Summary, Predict
         if (body.mode !== 'schedule_assist') {
+            const provider = process.env.AI_PROVIDER || 'groq';
+
             try {
-                console.log(`Starting Groq stream for mode: ${body.mode}`);
-                const stream = await callGroqStream(prompt);
+                console.log(`Starting stream for mode: ${body.mode}. Primary: ${provider}`);
+                const stream = provider === 'gemini'
+                    ? await callGeminiStream(prompt)
+                    : await callGroqStream(prompt);
+
                 return new NextResponse(stream, {
                     headers: {
                         'Content-Type': 'text/event-stream',
@@ -469,15 +517,36 @@ export async function POST(request: NextRequest) {
                         'Connection': 'keep-alive',
                     },
                 });
-            } catch (err) {
-                console.error('Streaming error in /api/coach:', err);
-                return NextResponse.json({
-                    success: false,
-                    error: 'Stream failed',
-                    message: err instanceof Error ? err.message : String(err)
-                }, { status: 500 });
+            } catch (primaryErr) {
+                console.error(`Streaming error (Primary: ${provider}):`, primaryErr);
+
+                // Fallback
+                const fallbackProvider = provider === 'gemini' ? 'groq' : 'gemini';
+                console.log(`Attempting fallback stream: ${fallbackProvider}`);
+
+                try {
+                    const fallbackStream = fallbackProvider === 'gemini'
+                        ? await callGeminiStream(prompt)
+                        : await callGroqStream(prompt);
+
+                    return new NextResponse(fallbackStream, {
+                        headers: {
+                            'Content-Type': 'text/event-stream',
+                            'Cache-Control': 'no-cache',
+                            'Connection': 'keep-alive',
+                        },
+                    });
+                } catch (fallbackErr) {
+                    console.error(`Streaming error (Fallback: ${fallbackProvider}):`, fallbackErr);
+                    return NextResponse.json({
+                        success: false,
+                        error: 'Stream failed (All providers)',
+                        message: `Primary: ${primaryErr instanceof Error ? primaryErr.message : String(primaryErr)}, Fallback: ${fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr)}`
+                    }, { status: 500 });
+                }
             }
         }
+
 
         // JSON for Schedule Assist
         else {

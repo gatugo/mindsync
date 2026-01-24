@@ -149,7 +149,24 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
 
         } catch (error) {
             console.error('AI Smart Add error:', error);
-            setAIError(error instanceof Error ? error.message : 'Failed to smart add');
+
+            // Local Regex Fallback when API fails (e.g. Rate Limits)
+            console.log('Using local fallback parsing...');
+            const parsed = parseNaturalDateTime(title);
+
+            if (parsed.date || parsed.time || parsed.duration) {
+                // Apply local parsed values
+                const today = new Date().toISOString().split('T')[0];
+                setDate(parsed.date || today);
+                if (parsed.time) setTime(parsed.time);
+                // Type defaults to ADULT in fallback
+                setType('ADULT');
+
+                setAIError('✨ Offline mode: Details auto-detected.');
+                setTimeout(() => setAIError(null), 3000);
+            } else {
+                setAIError(error instanceof Error ? error.message : 'Failed to smart add');
+            }
         } finally {
             setIsAILoading(false);
         }
