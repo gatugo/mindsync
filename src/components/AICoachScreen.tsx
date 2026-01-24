@@ -630,7 +630,7 @@ export default function AICoachScreen({
                                     <div className="absolute bottom-2 left-5 text-xs text-indigo-300 flex items-center gap-2">
                                         <Sparkles className="w-3 h-3" />
                                         <span>
-                                            Detected: {parsed.date && `${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+                                            Detected: {parsed.date && `${new Date(parsed.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
                                             {parsed.date && parsed.time && ' @ '}
                                             {parsed.time && format12h(parsed.time)}
                                         </span>

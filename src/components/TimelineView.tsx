@@ -488,7 +488,7 @@ export default function TimelineView({
                                                     <Sparkles className="w-3 h-3" />
                                                     <span>
                                                         Detected:
-                                                        {parsed.date && ` ${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+                                                        {parsed.date && ` ${new Date(parsed.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
                                                         {parsed.date && parsed.time && ' @'}
                                                         {parsed.time && ` ${format12h(parsed.time)}`}
                                                         {parsed.duration && ` (${parsed.duration} mins)`}
