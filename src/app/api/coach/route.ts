@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { COACH_SYSTEM_PROMPT } from '@/lib/aiPrompts';
 import { z } from 'zod';
+
 
 // ============ SECURITY: Rate Limiting ============
 const REQUESTS_PER_MINUTE = 10;
@@ -127,25 +129,75 @@ async function callGroqStream(prompt: string, retryCount = 0): Promise<ReadableS
 
 
 // Keeping non-streaming for JSON tasks (Smart Add)
-async function callGroqJSON(prompt: string): Promise<string> {
+async function callGroqJSON(prompt: string, retryCount = 0): Promise<string> {
     const apiKey = process.env.GROQ_API_KEY;
+    const MAX_RETRIES = 2;
+
+    console.log(`[Groq] JSON Request (attempt ${retryCount + 1}). Key present:`, !!apiKey);
+
     if (!apiKey) throw new Error('GROQ_API_KEY not set');
 
     const groq = new Groq({ apiKey });
 
-    const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-            { role: 'system', content: COACH_SYSTEM_PROMPT },
-            { role: 'user', content: prompt },
-        ],
-        response_format: { type: 'json_object' }, // Enforce JSON for smart add
-        max_tokens: 500,
-        temperature: 0.7,
+    try {
+        const completion = await groq.chat.completions.create({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+                { role: 'system', content: COACH_SYSTEM_PROMPT },
+                { role: 'user', content: prompt },
+            ],
+            response_format: { type: 'json_object' }, // Enforce JSON for smart add
+            max_tokens: 500,
+            temperature: 0.7,
+        });
+
+        return completion.choices[0]?.message?.content || '{}';
+    } catch (err: any) {
+        console.error('[Groq] JSON API Error:', err);
+
+        // Handle rate limiting
+        if (err?.status === 429) {
+            console.warn('[Groq] JSON Rate limited. Waiting 2s before retry...');
+            await new Promise(r => setTimeout(r, 2000));
+        }
+
+        // Retry logic
+        if (retryCount < MAX_RETRIES) {
+            console.log(`[Groq] Retrying JSON (attempt ${retryCount + 2})...`);
+            return callGroqJSON(prompt, retryCount + 1);
+        }
+
+        throw err;
+    }
+}
+
+async function callGeminiJSON(prompt: string): Promise<string> {
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) throw new Error('GOOGLE_API_KEY not set');
+
+    console.log('[Gemini] JSON Request via gemini-2.0-flash');
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: 'gemini-2.0-flash',
+        generationConfig: { responseMimeType: "application/json" }
     });
 
-    return completion.choices[0]?.message?.content || '{}';
+
+    try {
+        const result = await model.generateContent([
+            COACH_SYSTEM_PROMPT,
+            "Respond with valid JSON.",
+            prompt
+        ]);
+        const response = await result.response;
+        return response.text();
+    } catch (err) {
+        console.error('[Gemini] JSON API Error:', err);
+        throw err;
+    }
 }
+
+
 
 function format12h(totalMinutes: number): string {
     const h = Math.floor(totalMinutes / 60);
@@ -429,17 +481,44 @@ export async function POST(request: NextRequest) {
 
         // JSON for Schedule Assist
         else {
+            const provider = process.env.AI_PROVIDER || 'groq';
+            console.log(`Fetching JSON for schedule_assist. Primary: ${provider}`);
+
             try {
-                console.log('Fetching Groq JSON for schedule_assist');
-                const jsonResponse = await callGroqJSON(prompt);
+                // Try Primary Provider
+                let jsonResponse;
+                if (provider === 'gemini') {
+                    jsonResponse = await callGeminiJSON(prompt);
+                } else {
+                    jsonResponse = await callGroqJSON(prompt);
+                }
                 return NextResponse.json({ success: true, response: jsonResponse });
-            } catch (err) {
-                console.error('JSON error in /api/coach:', err);
-                return NextResponse.json({
-                    success: false,
-                    error: 'JSON generation failed',
-                    message: err instanceof Error ? err.message : String(err)
-                }, { status: 500 });
+
+            } catch (primaryErr) {
+                console.error(`Primary provider (${provider}) failed:`, primaryErr);
+
+                // Try Fallback Provider
+                const fallbackProvider = provider === 'gemini' ? 'groq' : 'gemini';
+                console.log(`Attempting fallback to: ${fallbackProvider}`);
+
+                try {
+                    let fallbackResponse;
+                    if (fallbackProvider === 'gemini') {
+                        fallbackResponse = await callGeminiJSON(prompt);
+                    } else {
+                        fallbackResponse = await callGroqJSON(prompt);
+                    }
+                    return NextResponse.json({ success: true, response: fallbackResponse });
+
+                } catch (fallbackErr) {
+                    console.error(`Fallback provider (${fallbackProvider}) also failed:`, fallbackErr);
+
+                    return NextResponse.json({
+                        success: false,
+                        error: 'JSON generation failed (All providers)',
+                        message: `Primary: ${primaryErr instanceof Error ? primaryErr.message : String(primaryErr)}, Fallback: ${fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr)}`
+                    }, { status: 500 });
+                }
             }
         }
     } catch (error) {

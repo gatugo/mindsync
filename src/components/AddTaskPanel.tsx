@@ -122,8 +122,15 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
             }
 
             let jsonStr = data.response;
-            jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            // Robust JSON extraction
+            const firstBrace = jsonStr.indexOf('{');
+            const lastBrace = jsonStr.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+            }
+
             const suggestion = JSON.parse(jsonStr);
+
 
             const newType = (suggestion.suggestedType && ['ADULT', 'CHILD', 'REST'].includes(suggestion.suggestedType))
                 ? suggestion.suggestedType
@@ -131,14 +138,14 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
             const newDate = suggestion.suggestedDate || new Date().toISOString().split('T')[0];
             const newTime = suggestion.suggestedTime;
 
-            // Immediately add the task
-            const parsedLocal = parseNaturalDateTime(title);
-            const finalDuration = suggestion.duration || parsedLocal.duration;
-            onAdd(title.trim(), newType as TaskType, newDate, newTime, finalDuration);
+            // Auto-fill fields instead of submitting
+            setType(newType as TaskType);
+            setDate(newDate);
+            if (newTime) setTime(newTime);
 
-            // Reset and close
-            setTitle(''); setDate(''); setTime(''); setAIError(null);
-            onClose();
+            // Show success feedback briefly
+            setAIError('✨ Details auto-filled! Review and add.');
+            setTimeout(() => setAIError(null), 3000);
 
         } catch (error) {
             console.error('AI Smart Add error:', error);
@@ -161,9 +168,8 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
             <div className="fixed top-[81px] left-0 right-0 z-[70] flex justify-center px-4 animate-in slide-in-from-top-4 fade-in duration-300 pointer-events-none">
                 <div
                     className="w-full max-w-md pointer-events-auto bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_0_50px_-12px_rgba(99,102,241,0.25)] ring-1 ring-white/10 relative overflow-visible group"
-                    onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing
+                    onClick={(e) => e.stopPropagation()}
                 >
-
 
                     {/* Close Button (subtle) */}
                     <button
@@ -187,19 +193,29 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                                 value={title}
                                 onChange={(e) => { setTitle(e.target.value); setAIError(null); }}
                                 placeholder="Type to add (e.g., 'Gym at 5pm')..."
-                                className="w-full bg-transparent text-xl sm:text-2xl font-semibold text-white placeholder:text-white/30 focus:outline-none py-2 pr-8 leading-relaxed"
+                                className="w-full bg-transparent text-xl sm:text-2xl font-semibold text-white placeholder:text-white/30 focus:outline-none py-2 pr-12 leading-relaxed"
                             />
+                            {/* Inside-Input Sparkle Button */}
+                            <button
+                                type="button"
+                                onClick={handleSmartAdd}
+                                disabled={isAILoading || !title.trim()}
+                                className="absolute right-0 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-0 disabled:pointer-events-none"
+                                title="Auto-fill details with AI"
+                            >
+                                {isAILoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                            </button>
                         </div>
 
                         {/* AI Error Message */}
                         {aiError && (
-                            <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5 font-medium animate-in fade-in slide-in-from-top-1">
+                            <div className={`text-xs px-3 py-1.5 font-medium animate-in fade-in slide-in-from-top-1 rounded-lg border ${aiError.includes('✨') ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'}`}>
                                 {aiError}
                             </div>
                         )}
 
                         {/* Natural Language Preview (Smart Detection) */}
-                        {title.trim() && (() => {
+                        {title.trim() && !aiError && (() => {
                             const parsed = parseNaturalDateTime(title);
                             if (parsed.date || parsed.time || parsed.duration) {
                                 return (
@@ -281,38 +297,20 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                                 </div>
                             </div>
 
-                            {/* Row 2: AI Button + Add Task */}
-                            <div className="flex items-center justify-between gap-3 sm:gap-4 pt-1">
-                                {/* AI Smart Add Button */}
-                                <button
-                                    type="button"
-                                    onClick={handleSmartAdd}
-                                    disabled={isAILoading || !title.trim()}
-                                    className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 sm:gap-2.5 hover:scale-[1.02] active:scale-95 border border-white/10"
-                                >
-                                    {isAILoading ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <Sparkles className="w-4 h-4" />
-                                    )}
-                                    <span className="whitespace-nowrap">Smart Add</span>
-                                </button>
-
-                                {/* Add Button */}
-                                <button
-                                    type="submit"
-                                    disabled={!title.trim()}
-                                    className="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 border border-white/5"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    <span className="whitespace-nowrap">Add Task</span>
-                                </button>
-                            </div>
+                            {/* Row 2: Add Task Button (Full Width) */}
+                            <button
+                                type="submit"
+                                disabled={!title.trim()}
+                                className="w-full bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 px-5 py-3 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 border border-white/5 shadow-lg shadow-black/20"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span className="whitespace-nowrap">Add Task</span>
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </>
+
     );
 }
-
