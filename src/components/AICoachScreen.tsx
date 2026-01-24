@@ -223,7 +223,7 @@ export default function AICoachScreen({
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
         // Capture everything inside the brackets to parse manually
-        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/g;
+        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/gi;
 
         const cleanText = text.replace(actionRegex, (match, content) => {
             const parts = content.split('|').map((p: string) => p.trim());

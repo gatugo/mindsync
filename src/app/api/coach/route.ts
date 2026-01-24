@@ -109,17 +109,17 @@ function format12h(totalMinutes: number): string {
     return `${displayH}${displayM}${ampm}`;
 }
 
-function calculateFreeSlots(tasks: CoachRequest['tasks']): string {
-    if (!tasks) return 'Unknown';
+function calculateFreeSlots(tasks: CoachRequest['tasks'], targetDate?: string): string {
+    if (!tasks || !targetDate) return 'Unknown';
 
     // 1. Get today's scheduled tasks sorted by time
     const todayTasks = tasks
-        .filter(t => t.scheduledTime && t.status !== 'DONE') // Only consider pending scheduled tasks
+        .filter(t => t.scheduledDate === targetDate && t.scheduledTime && t.status !== 'DONE') // Only consider pending scheduled tasks for the target date
         .sort((a, b) => (a.scheduledTime! > b.scheduledTime! ? 1 : -1));
 
-    // Define working day (08:00 to 22:00)
-    const dayStart = 8 * 60;
-    const dayEnd = 22 * 60;
+    // Define working day (06:00 to 23:00)
+    const dayStart = 6 * 60;
+    const dayEnd = 23 * 60;
 
     if (todayTasks.length === 0) return `All day (${format12h(dayStart)} - ${format12h(dayEnd)})`;
 
@@ -159,20 +159,21 @@ function calculateFreeSlots(tasks: CoachRequest['tasks']): string {
 function buildPrompt(request: CoachRequest): string {
     const { mode, tasks, score, balance, question, history, goals, preferences, taskTitle, conversationHistory, localDate, localTime } = request;
 
-    const availableSlots = calculateFreeSlots(tasks);
+    // Use Client's Local Time/Date if provided, otherwise fallback to server time
+    const now = new Date();
+    const currentTimeStr = localTime || `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const currentDateKey = localDate || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const currentDateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const availableSlots = calculateFreeSlots(tasks, currentDateKey);
 
     const prefsStr = preferences ? `
 - Hobbies: ${preferences.hobbies?.join(', ') || 'None'}
 - Interests: ${preferences.interests?.join(', ') || 'None'}
 - Passions: ${preferences.passions?.join(', ') || 'None'}` : '';
 
-    // Use Client's Local Time/Date if provided, otherwise fallback to server time
-    const now = new Date();
-    const currentTimeStr = localTime || `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    const currentDateStr = localDate || now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
     const commonContext = `Current Context:
-- Date: ${currentDateStr} (Local)
+- Date: ${currentDateDisplay} (${currentDateKey})
 - Time: ${currentTimeStr} (Local)
 - Current Status:
     - Ego Score: ${score || 50}/100
@@ -195,8 +196,13 @@ Give me a 2-sentence personalized recommendation based on my current balance usi
                 ).join('\n')
                 : '';
 
+            const todayTasksList = tasks ? tasks.filter(t => t.scheduledDate === currentDateKey) : [];
+            const tasksStr = todayTasksList.length > 0
+                ? `Today's Tasks (${currentDateKey}): ${todayTasksList.map(t => `${t.title} (${t.type}${t.scheduledTime ? ` at ${t.scheduledTime}` : ''})`).join(', ')}`
+                : "No tasks scheduled for today.";
+
             return `${commonContext}
-${tasks ? `Today's Tasks: ${tasks.map(t => `${t.title} (${t.type}${t.scheduledTime ? ` at ${t.scheduledTime}` : ''})`).join(', ')}` : ''}
+${tasksStr}
 ${goals ? `Active Goals: ${goals.map(g => `${g.title} (due ${g.targetDate}${g.startTime ? ` at ${g.startTime}` : ''})`).join(', ')}` : ''}${historyStr}
 
 User question: ${question}
@@ -207,9 +213,9 @@ Answer helpfully as the "Ego" coach using specific MindSync insights.
 // When the user explicitly asks to schedule a task, or when you strongly recommend a specific intervention, generate an ACTION block like this:
 // [ACTION: CREATE_TASK | Title | Type (ADULT/CHILD/REST) | Duration in minutes | ScheduledDate (YYYY-MM-DD) | ScheduledTime (HH:MM)]
 // Examples:
-// - `[ACTION: CREATE_TASK | Read "Atomic Habits" | REST | 30 | 2026-01 - 24 | 20:00]`
-// - `[ACTION: CREATE_TASK | Review Quarterly Budget | ADULT | 60 | 2026-01 - 25 | 09:00]`
-// - `[ACTION: CREATE_TASK | Practice Jazz Guitar Improvisation | CHILD | 45 | 2026-01 - 24 | 18:00]`
+// - [ACTION: CREATE_TASK | Read "Atomic Habits" | REST | 30 | 2026-01-24 | 20:00]
+// - [ACTION: CREATE_TASK | Review Quarterly Budget | ADULT | 60 | 2026-01-25 | 09:00]
+// - [ACTION: CREATE_TASK | Practice Jazz Guitar Improvisation | CHILD | 45 | 2026-01-24 | 18:00]
 
 // CONFLICT DETECTION & SPECIFICITY:
 // 1. BE SPECIFIC: Do NOT suggest generic things like "Work on a project". Use the User Profile and History to suggest something like "Finalize the Project Alpha report".
@@ -258,7 +264,7 @@ Based on patterns and upcoming goals, suggest tomorrow's ideal distribution of A
 Task Title: "${title}"
 
 Current Context:
-- Date: ${currentDateStr} (Local)
+- Date: ${currentDateDisplay} (${currentDateKey})
 - Time: ${currentTimeStr} (Local)
 - Available Slots: ${availableSlots}
 
@@ -266,7 +272,7 @@ Instructions:
 1. **Analyze Title**: Extract the Task Type (ADULT/CHILD/REST), Date, and Time.
 2. **Date Handling**: 
    - If a date is mentioned (e.g., "Jan 22", "tomorrow", "next Friday"), return that specific date in YYYY-MM-DD format.
-   - If NO date is mentioned, use the Current Logic Date: "${currentDateStr}".
+   - If NO date is mentioned, use the Current Logic Date: "${currentDateKey}".
 3. **Time Handling**:
    - If a time is mentioned ("at 5pm", "in 1 hour"), use it (convert "in X" relative to Current Time: ${currentTimeStr}).
    - If NO time is mentioned, suggest an *Available Slot* from the list above.
