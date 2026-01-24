@@ -32,26 +32,34 @@ export const parseNaturalDateTime = (input: string): ParsedDateTime => {
     }
 
     // 2. Extract Date
+    // Patterns:
+    // a) M-D-YY or M-D-YYYY (e.g. 1-24-26, 01/24/2026)
+    const numericDateMatch = cleanWithoutDuration.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+    // b) MMM D (e.g. Jan 26, January 26th)
     const months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
-    const dateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`);
-    const dateMatch = cleanWithoutDuration.match(dateRegex);
+    const namedDateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`);
+    const namedDateMatch = cleanWithoutDuration.match(namedDateRegex);
 
-    if (dateMatch) {
-        const day = parseInt(dateMatch[1]);
+    if (numericDateMatch) {
+        const m = parseInt(numericDateMatch[1]) - 1;
+        const d = parseInt(numericDateMatch[2]);
+        let y = parseInt(numericDateMatch[3]);
+        if (y < 100) y += 2000;
+        targetDate = new Date(y, m, d);
+    } else if (namedDateMatch) {
+        const day = parseInt(namedDateMatch[1]);
         const monthStr = cleanWithoutDuration.match(new RegExp(`(${months})`))![0];
         const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(monthStr.substring(0, 3));
         targetDate.setMonth(monthIndex);
         targetDate.setDate(day);
 
         // Handle year rollover (if user says "Jan" in Dec, mean next year)
-        // If date is more than 1 month in the past, assume next year.
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
         if (targetDate < oneMonthAgo) {
             targetDate.setFullYear(targetDate.getFullYear() + 1);
         }
-    }
-    else if (cleanWithoutDuration.includes('tomorrow')) {
+    } else if (cleanWithoutDuration.includes('tomorrow')) {
         targetDate.setDate(targetDate.getDate() + 1);
     } else if (cleanWithoutDuration.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)) {
         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -66,8 +74,9 @@ export const parseNaturalDateTime = (input: string): ParsedDateTime => {
     // 3. Extract Time
     // Clean specific patterns that shouldn't match time
     let timeSearchStr = cleanWithoutDuration;
-    if (dateMatch) {
-        timeSearchStr = timeSearchStr.replace(dateMatch[0], '');
+    const dateMatchUsed = numericDateMatch || namedDateMatch;
+    if (dateMatchUsed) {
+        timeSearchStr = timeSearchStr.replace(dateMatchUsed[0], '');
     }
 
     // Regex for:

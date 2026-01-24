@@ -50,15 +50,32 @@ Last Updated: January 20, 2026
 - [x] Codebase Anonymization: Replaced hardcoded personal data with generic defaults & `.env.local` support
 - [x] Add user authentication (Supabase Auth)
 - [x] Progressive Web App (PWA) install
+- [x] AI Coach: Overhaul intelligence (Specificity, Context-aware scheduling)
+- [x] Fix Timezone date display mismatch (PST/UTC)
+- [x] Streaming AI responses (word-by-word)
 
 ### Future Enhancements
-- [ ] Streaming AI responses (word-by-word)
 - [ ] More natural language patterns ("this Friday", "in 30 min")
 - [ ] Push notifications for upcoming tasks
+- [ ] Persistence of Rate Limits via Redis
 
 ---
 
 ## 📝 Session Notes
+
+### January 24, 2026
+- **AI Coach Overhaul**: 
+    - Forced authoritative advice: "I am prescribing..." instead of "You should..."
+    - Restricted AI to only see Today's tasks (fixed context pollution).
+    - Standardized `[ACTION]` block syntax with required `Date` field.
+- **Date Correction**: Resolved timezone offset bug where dates showed the previous day.
+- **Environment Fixes**: Applied fix for browser tool `$HOME` environment variable.
+
+### January 23, 2026
+- **AI Sync & Polish**:
+    - Implemented streaming responses for better UX.
+    - Added local time awareness to AI Coach prompts.
+    - Fixed mobile header crowding and secured export/import.
 
 ### January 20, 2026
 - Reorganized project from `.gemini/scratch` to clean `/BrainBalance` folder

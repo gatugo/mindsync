@@ -1,10 +1,10 @@
 'use client';
 
-import { Home, BarChart2, MessageSquare, Settings } from 'lucide-react';
+import { Home, Calendar, BarChart2, MessageSquare, Settings } from 'lucide-react';
 
 interface BottomNavProps {
-    currentTab: 'today' | 'stats' | 'coach' | 'settings';
-    onTabChange: (tab: 'today' | 'stats' | 'coach' | 'settings') => void;
+    currentTab: 'today' | 'plan' | 'coach' | 'stats' | 'settings';
+    onTabChange: (tab: 'today' | 'plan' | 'coach' | 'stats' | 'settings') => void;
 }
 
 export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
@@ -15,15 +15,23 @@ export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
                     onClick={() => onTabChange('today')}
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'today' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
-                    <Home className="w-6 h-6" />
+                    <Home className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Home</span>
+                </button>
+
+                <button
+                    onClick={() => onTabChange('plan')}
+                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'plan' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                >
+                    <Calendar className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Plan</span>
                 </button>
 
                 <button
                     onClick={() => onTabChange('coach')}
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'coach' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
-                    <MessageSquare className="w-6 h-6" />
+                    <MessageSquare className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Coach</span>
                 </button>
 
@@ -31,16 +39,15 @@ export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
                     onClick={() => onTabChange('stats')}
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'stats' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
-                    <BarChart2 className="w-6 h-6" />
+                    <BarChart2 className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Stats</span>
                 </button>
 
-                {/* Settings */}
                 <button
                     onClick={() => onTabChange('settings')}
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'settings' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                 >
-                    <Settings className="w-6 h-6" />
+                    <Settings className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Settings</span>
                 </button>
             </div>

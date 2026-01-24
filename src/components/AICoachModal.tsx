@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, ReactNode } from 'react';
-import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCircle, CheckCircle2 } from 'lucide-react';
+import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCircle, CheckCircle2, RotateCw } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Task, DailySnapshot, Goal, TaskType } from '@/types';
 import { parseNaturalDateTime, format12h } from '@/lib/datePatterns';
@@ -53,6 +53,12 @@ export default function AICoachModal({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const addTask = useStore((state) => state.addTask);
     const preferences = useStore((state) => state.preferences);
+
+    const handleSuggestAnother = (action: SuggestedAction) => {
+        const prompt = `I'd like another suggestion for "${action.title}". Provide an alternative task of type ${action.taskType} that would fit my schedule for ${action.scheduledDate || 'today'}.`;
+        setQuestion(prompt);
+        handleAskCoach('chat');
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -489,20 +495,29 @@ export default function AICoachModal({
                                 msg.actions && msg.actions.length > 0 && (
                                     <div className="flex flex-col gap-2 mt-1 -ml-11 pl-14 w-full">
                                         {msg.actions.map((action, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={(e) => {
-                                                    const btn = e.currentTarget;
-                                                    handleExecuteAction(action, msg.id);
-                                                    btn.disabled = true;
-                                                    btn.innerHTML = '<span>Added to Schedule</span>';
-                                                    btn.classList.add('opacity-50', 'cursor-not-allowed');
-                                                }}
-                                                className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-xl text-sm transition-all border border-emerald-500/20 w-fit text-left group/btn"
-                                            >
-                                                <PlusCircle className="w-4 h-4" />
-                                                <span>Add Task: <strong>{action.title}</strong> ({action.taskType}){action.scheduledTime ? ` @ ${format12h(action.scheduledTime)}` : ''}</span>
-                                            </button>
+                                            <div key={idx} className="flex flex-col gap-2">
+                                                <button
+                                                    key={idx}
+                                                    onClick={(e) => {
+                                                        const btn = e.currentTarget;
+                                                        handleExecuteAction(action, msg.id);
+                                                        btn.disabled = true;
+                                                        btn.innerHTML = '<span>Added to Schedule</span>';
+                                                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                                                    }}
+                                                    className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-xl text-sm transition-all border border-emerald-500/20 w-fit text-left group/btn"
+                                                >
+                                                    <PlusCircle className="w-4 h-4" />
+                                                    <span>Add Task: <strong>{action.title}</strong> ({action.taskType}){action.scheduledTime ? ` @ ${format12h(action.scheduledTime)}` : ''}</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleSuggestAnother(action)}
+                                                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white px-4 py-1.5 rounded-xl text-xs transition-all border border-white/5 w-fit"
+                                                >
+                                                    <RotateCw className="w-3.5 h-3.5" />
+                                                    <span>Suggest Another</span>
+                                                </button>
+                                            </div>
                                         ))}
                                     </div>
                                 )

@@ -32,9 +32,11 @@ export default function Home() {
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showGoals, setShowGoals] = useState(false);
-  const [activeTab, setActiveTab] = useState<'today' | 'stats' | 'coach' | 'settings'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'plan' | 'stats' | 'coach' | 'settings'>('today');
   const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // ... (rest of the state stays the same, adding plan results in small changes to types)
 
   // Zustand store
   const {
@@ -146,17 +148,20 @@ export default function Home() {
     <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-200">
       {/* Header - Only show on Today tab */}
       {activeTab === 'today' && (
-        <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl px-6 py-4">
+        <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl px-4 py-3 sm:px-6 sm:py-4">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-            <a href="https://mindsync-topaz.vercel.app/" className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+            <div
+              onClick={() => setActiveTab('today')}
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
                 <span className="material-icons-round text-xl sm:text-2xl">psychology</span>
               </div>
-              <div className="flex flex-col hidden sm:flex">
-                <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">MindSync</h1>
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] hidden md:block">Sync. Focus. Flow.</p>
+              <div className="flex flex-col">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">MindSync</h1>
+                <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">Sync. Focus. Flow.</p>
               </div>
-            </a>
+            </div>
 
             <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
               {/* Score Badge */}
@@ -234,6 +239,33 @@ export default function Home() {
                   onAddTask={addTask}
                   onEditTask={setEditingTask}
                 />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'plan' && (
+            <div className="h-full flex flex-col overflow-hidden pb-4 relative">
+              <div className="flex-1 min-h-0">
+                <TimelineView
+                  tasks={tasks}
+                  onMoveTask={moveTask}
+                  onDeleteTask={deleteTask}
+                  onUpdateTask={updateTask}
+                  onAddTask={addTask}
+                  onEditTask={setEditingTask}
+                />
+              </div>
+              <div className="absolute bottom-6 left-0 right-0 flex justify-center px-6 pointer-events-none z-20">
+                <button
+                  onClick={() => setActiveTab('coach')}
+                  className="pointer-events-auto bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold shadow-2xl shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 border border-white/20 group"
+                >
+                  <span className="material-icons-round text-2xl group-hover:rotate-12 transition-transform">auto_awesome</span>
+                  <div className="flex flex-col items-start leading-none">
+                    <span className="text-lg">Plan My Day</span>
+                    <span className="text-[10px] text-white/70 uppercase tracking-widest mt-0.5">AI Schedule Optimizer</span>
+                  </div>
+                </button>
               </div>
             </div>
           )}

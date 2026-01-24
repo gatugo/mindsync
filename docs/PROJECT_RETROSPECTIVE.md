@@ -12,15 +12,16 @@
 - **Goals Panel Pickers**: Replaced native browser inputs (white, unstyled) with custom `DatePicker` and `TimePicker` components that match the dark theme (Slate-900 + Indigo-500).
 - **Responsive Navigation**: Linked navbar logo to production URL.
 
-### 2. AI Architecture Upgrade
-- **Refactoring**: Extracted the massive system prompt from `route.ts` into a dedicated `/lib/aiPrompts.ts` file.
-- **Enhanced Logic**: Added centralized "Emotional Detection Patterns," "Balance States," and distinct templates for Summaries vs. Scheduling.
-- **Benefit**: Allows non-developers to tune the AI personality without touching API code.
+### 3. AI Intelligence & Critical Bug Fixes (Jan 24, 2026)
+- **Specificity Overhaul**: Transitioned the AI from a suggestive assistant to an authoritative psychologist. It now "prescribes" interventions, making them much more actionable.
+- **Context Filtering**: Identified and resolved "context pollution" where the AI was overwhelmed by the entire task history. Strictly filtering for the current local day restored the "smarts" users expected.
+- **Unified Action Format**: Standardized how tasks are created via AI by introducing a mandatory `Date` field in the `[ACTION]` block, solving cross-day scheduling ambiguity.
+- **Date Timezone Correction**: Fixed a common JS `Date` pitfall where UTC interpretation shifted dates by -1 in Western timezones. 
 
-### 3. Security Hardening
-- **Rate Limiting**: Implemented in-memory limiter (10 req/min) on `/api/coach` to prevent abuse.
-- **Input Validation**: Added `Zod` schema validation to strictly enforce data types for API requests.
-- **Content Security Policy (CSP)**: Added strict headers in `next.config.ts`, carefully whitelisting usage of `fonts.googleapis.com` to preserve UI integrity.
+### 4. Security & Performance
+- **Rate Limiting**: Implemented local memory-based limiting (10 req/min) to protect the API.
+- **Streaming UI**: Enabled partial streaming (server-side support with frontend polling/update) for immediate user feedback.
+
 
 ---
 
@@ -45,6 +46,8 @@
 2.  **CSP is Delicate**: When adding Content Security Policy, *always* audit external assets first (Fonts, Analytics, Images). Defaulting to `'self'` often breaks specialized UI libraries (like Google Fonts).
 3.  **Centralize Prompts Early**: Don't bury large text blocks in API logic. Moving prompts to their own file (`aiPrompts.ts`) earlier would have saved scroll time and cognitive load.
 4.  **Mobile First Components**: Native browser controls (date/time) are notoriously hard to style consistency. Stick to custom components for uniform UX across OSs.
+5.  **Always Fix Timezones Early**: When using JS `Date`, never assume UTC is safe for local-only apps. Standardizing on `T12:00:00` for date-only strings prevents the dreaded "one-day-behind" bug in Western timezones.
+6.  **Curate AI Context**: More data isn't always better. Feeding the entire task history into a chat prompt causes the AI to lose focus. Strictly filtering context for the "Current Logic Date" is essential for sharp, relevant coaching.
 
 ---
 

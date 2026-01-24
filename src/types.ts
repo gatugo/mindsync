@@ -5,6 +5,8 @@ export interface UserPreferences {
     hobbies: string[];
     interests: string[];
     passions: string[];
+    sleepStartTime?: string; // HH:MM
+    sleepEndTime?: string; // HH:MM
 }
 
 export interface Task {

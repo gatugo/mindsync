@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, ReactNode } from 'react';
-import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCircle, CheckCircle2 } from 'lucide-react';
+import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCircle, CheckCircle2, RotateCw } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Task, DailySnapshot, Goal, TaskType } from '@/types';
 import { parseNaturalDateTime, format12h } from '@/lib/datePatterns';
@@ -49,6 +49,12 @@ export default function AICoachScreen({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const addTask = useStore((state) => state.addTask);
     const preferences = useStore((state) => state.preferences);
+
+    const handleSuggestAnother = (action: SuggestedAction) => {
+        const prompt = `I'd like another suggestion for "${action.title}". Provide an alternative task of type ${action.taskType} that would fit my schedule for ${action.scheduledDate || 'today'}.`;
+        setQuestion(prompt);
+        handleAskCoach('chat');
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -550,20 +556,29 @@ export default function AICoachScreen({
                                                         )}
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        const btn = e.currentTarget;
-                                                        handleExecuteAction(action, msg.id);
-                                                        btn.disabled = true;
-                                                        btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
-                                                        btn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
-                                                        btn.classList.add('bg-emerald-500', 'cursor-not-allowed');
-                                                    }}
-                                                    className="shrink-0 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-500/20"
-                                                >
-                                                    <PlusCircle className="w-3.5 h-3.5" />
-                                                    Add
-                                                </button>
+                                                <div className="flex flex-col gap-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            const btn = e.currentTarget;
+                                                            handleExecuteAction(action, msg.id);
+                                                            btn.disabled = true;
+                                                            btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                                                            btn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
+                                                            btn.classList.add('bg-emerald-500', 'cursor-not-allowed');
+                                                        }}
+                                                        className="shrink-0 bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-500/20"
+                                                    >
+                                                        <PlusCircle className="w-3.5 h-3.5" />
+                                                        Add
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSuggestAnother(action)}
+                                                        className="shrink-0 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 border border-white/5"
+                                                    >
+                                                        <RotateCw className="w-3 h-3" />
+                                                        Another
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     );

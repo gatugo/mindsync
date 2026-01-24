@@ -87,6 +87,8 @@ export const useStore = create<StoreState>((set, get) => ({
                 if (profile.hobbies?.length) newPrefs.hobbies = profile.hobbies;
                 if (profile.interests?.length) newPrefs.interests = profile.interests;
                 if (profile.passions?.length) newPrefs.passions = profile.passions;
+                if (profile.sleep_start_time) newPrefs.sleepStartTime = profile.sleep_start_time;
+                if (profile.sleep_end_time) newPrefs.sleepEndTime = profile.sleep_end_time;
             }
 
             set({ tasks, goals, history, preferences: newPrefs, _hasHydrated: true });
@@ -264,7 +266,9 @@ export const useStore = create<StoreState>((set, get) => ({
         api.updateProfile({
             hobbies: newPrefs.hobbies,
             interests: newPrefs.interests,
-            passions: newPrefs.passions
+            passions: newPrefs.passions,
+            sleep_start_time: newPrefs.sleepStartTime,
+            sleep_end_time: newPrefs.sleepEndTime
         });
     },
 

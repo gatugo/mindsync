@@ -109,22 +109,46 @@ function format12h(totalMinutes: number): string {
     return `${displayH}${displayM}${ampm}`;
 }
 
-function calculateFreeSlots(tasks: CoachRequest['tasks'], targetDate?: string): string {
+function calculateFreeSlots(tasks: CoachRequest['tasks'], targetDate?: string, preferences?: any): string {
     if (!tasks || !targetDate) return 'Unknown';
 
     // 1. Get today's scheduled tasks sorted by time
     const todayTasks = tasks
-        .filter(t => t.scheduledDate === targetDate && t.scheduledTime && t.status !== 'DONE') // Only consider pending scheduled tasks for the target date
+        .filter(t => t.scheduledDate === targetDate && t.scheduledTime && t.status !== 'DONE')
         .sort((a, b) => (a.scheduledTime! > b.scheduledTime! ? 1 : -1));
 
-    // Define working day (06:00 to 23:00)
-    const dayStart = 6 * 60;
-    const dayEnd = 23 * 60;
+    // Define working day based on preferences or defaults
+    const sleepStart = preferences?.sleepStartTime || '23:00';
+    const sleepEnd = preferences?.sleepEndTime || '06:00';
 
-    if (todayTasks.length === 0) return `All day (${format12h(dayStart)} - ${format12h(dayEnd)})`;
+    const [sH, sM] = sleepEnd.split(':').map(Number);
+    const [eH, eM] = sleepStart.split(':').map(Number);
+
+    const dayStart = sH * 60 + sM;
+    const dayEnd = eH * 60 + eM;
+
+    // Handle overnight sleep schedules (e.g. sleep 23:00 to 06:00)
+    // If dayEnd < dayStart, it means sleep spans midnight.
+    // However, usually we want the AWAKE time. 
+    // If sleep is 23:00 to 06:00, awake is 06:00 to 23:00.
+    // If sleep is 02:00 to 10:00, awake is 10:00 to 02:00.
+
+    let awakeStart = dayStart;
+    let awakeEnd = dayEnd;
+
+    // If dayEnd <= dayStart, it means the "end" (sleep start) is before the "start" (wake up) in 24h cycle
+    // We treat dayEnd as dayEnd + 24h for calculations if needed, but for slots we mainly care about the current local day's view.
+
+    if (todayTasks.length === 0) {
+        if (awakeEnd > awakeStart) {
+            return `All day (${format12h(awakeStart)} - ${format12h(awakeEnd)})`;
+        } else {
+            return `All day (${format12h(awakeStart)} - 11:59pm AND 12am - ${format12h(awakeEnd)})`;
+        }
+    }
 
     // Simple slot finder
-    let currentTime = dayStart;
+    let currentTime = awakeStart;
     const slots = [];
 
     for (const task of todayTasks) {
@@ -132,25 +156,23 @@ function calculateFreeSlots(tasks: CoachRequest['tasks'], targetDate?: string): 
 
         const [hh, mm] = task.scheduledTime.split(':').map(Number);
         const taskStart = hh * 60 + mm;
-        const taskDuration = task.duration || 30; // Default 30 min
+        const taskDuration = task.duration || 30;
         const taskEnd = taskStart + taskDuration;
 
-        // If task starts before current time (overlap), push current time forward
         if (taskStart < currentTime) {
             currentTime = Math.max(currentTime, taskEnd);
             continue;
         }
 
-        if (taskStart > currentTime + 15) { // Minimum 15 min gap
+        if (taskStart > currentTime + 15) {
             slots.push(`${format12h(currentTime)} - ${format12h(taskStart)}`);
         }
 
         currentTime = Math.max(currentTime, taskEnd);
     }
 
-    // Checking final slot after last task
-    if (currentTime < dayEnd - 15) {
-        slots.push(`${format12h(currentTime)} - ${format12h(dayEnd)}`);
+    if (currentTime < awakeEnd - 15) {
+        slots.push(`${format12h(currentTime)} - ${format12h(awakeEnd)}`);
     }
 
     return slots.length > 0 ? slots.join(', ') : 'None (Busy)';
@@ -165,7 +187,7 @@ function buildPrompt(request: CoachRequest): string {
     const currentDateKey = localDate || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const currentDateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    const availableSlots = calculateFreeSlots(tasks, currentDateKey);
+    const availableSlots = calculateFreeSlots(tasks, currentDateKey, preferences);
 
     const prefsStr = preferences ? `
 - Hobbies: ${preferences.hobbies?.join(', ') || 'None'}
@@ -201,8 +223,13 @@ Give me a 2-sentence personalized recommendation based on my current balance usi
                 ? `Today's Tasks (${currentDateKey}): ${todayTasksList.map(t => `${t.title} (${t.type}${t.scheduledTime ? ` at ${t.scheduledTime}` : ''})`).join(', ')}`
                 : "No tasks scheduled for today.";
 
+            const historySummary = (history || []).slice(-7)
+                .map(h => `- ${h.date}: Score ${h.score}, Adult ${h.adultCompleted}, Child ${h.childCompleted}`)
+                .join('\n');
+
             return `${commonContext}
 ${tasksStr}
+${historySummary ? `\nPast 7 Days History:\n${historySummary}\n` : ''}
 ${goals ? `Active Goals: ${goals.map(g => `${g.title} (due ${g.targetDate}${g.startTime ? ` at ${g.startTime}` : ''})`).join(', ')}` : ''}${historyStr}
 
 User question: ${question}

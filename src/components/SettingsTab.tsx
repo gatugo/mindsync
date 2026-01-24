@@ -17,7 +17,9 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
     const [user, setUser] = useState<any>(null);
     const [showDataModal, setShowDataModal] = useState(false);
     const router = useRouter();
-    const { resetStore } = useStore();
+    const { preferences, updatePreferences, resetStore } = useStore();
+
+    const [tempPrefs, setTempPrefs] = useState(preferences);
 
     useEffect(() => {
         const getUser = async () => {
@@ -27,6 +29,11 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
         getUser();
     }, []);
 
+    // Keep tempPrefs in sync with store when it hydrates
+    useEffect(() => {
+        setTempPrefs(preferences);
+    }, [preferences]);
+
     const handleLogout = async () => {
         await supabase.auth.signOut();
         resetStore();
@@ -34,8 +41,27 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
         router.refresh();
     };
 
+    const handleSavePrefs = () => {
+        updatePreferences(tempPrefs);
+    };
+
+    const handleAddTag = (key: 'hobbies' | 'interests' | 'passions', value: string) => {
+        if (!value.trim()) return;
+        setTempPrefs(prev => ({
+            ...prev,
+            [key]: [...(prev[key] || []), value.trim()]
+        }));
+    };
+
+    const handleRemoveTag = (key: 'hobbies' | 'interests' | 'passions', index: number) => {
+        setTempPrefs(prev => ({
+            ...prev,
+            [key]: prev[key].filter((_, i) => i !== index)
+        }));
+    };
+
     return (
-        <div className="h-full p-4 space-y-6 relative">
+        <div className="h-full p-4 space-y-6 relative overflow-y-auto pb-20">
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">Settings</h2>
 
             {/* Account Panel */}
@@ -77,6 +103,93 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                         </Link>
                     </div>
                 )}
+            </div>
+
+            {/* Brain Balance Preferences */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest px-1">Brain Personalization</h3>
+                    {(tempPrefs !== preferences) && (
+                        <button
+                            onClick={handleSavePrefs}
+                            className="text-xs font-bold text-indigo-500 hover:text-indigo-400 px-2 py-1 rounded-lg bg-indigo-500/10 animate-pulse transition-all"
+                        >
+                            Save Changes
+                        </button>
+                    )}
+                </div>
+
+                <div className="bg-slate-100 dark:bg-slate-800 p-5 rounded-3xl space-y-6">
+                    {/* Sleep Schedule */}
+                    <div className="space-y-3">
+                        <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            <span className="material-icons-round text-indigo-400 text-lg">bedtime</span>
+                            Sleep Schedule
+                        </label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Sleep At</span>
+                                <input
+                                    type="time"
+                                    value={tempPrefs.sleepStartTime || '23:00'}
+                                    onChange={(e) => setTempPrefs(p => ({ ...p, sleepStartTime: e.target.value }))}
+                                    className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Wake Up</span>
+                                <input
+                                    type="time"
+                                    value={tempPrefs.sleepEndTime || '07:00'}
+                                    onChange={(e) => setTempPrefs(p => ({ ...p, sleepEndTime: e.target.value }))}
+                                    className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight px-1">
+                            The AI Coach will respect these hours when suggesting tasks.
+                        </p>
+                    </div>
+
+                    {/* Hobbies / Interests / Passions */}
+                    {(['hobbies', 'interests', 'passions'] as const).map((key) => (
+                        <div key={key} className="space-y-3">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 capitalize">
+                                <span className="material-icons-round text-slate-400 text-lg">
+                                    {key === 'hobbies' ? 'sports_esports' : key === 'interests' ? 'auto_awesome' : 'favorite'}
+                                </span>
+                                {key}
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {(tempPrefs[key] || []).map((tag, i) => (
+                                    <span
+                                        key={i}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-white/5 group"
+                                    >
+                                        {tag}
+                                        <button
+                                            onClick={() => handleRemoveTag(key, i)}
+                                            className="hover:text-red-500 transition-colors"
+                                        >
+                                            <span className="material-icons-round text-sm">close</span>
+                                        </button>
+                                    </span>
+                                ))}
+                                <input
+                                    type="text"
+                                    placeholder={`Add ${key.slice(0, -1)}...`}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleAddTag(key, (e.target as HTMLInputElement).value);
+                                            (e.target as HTMLInputElement).value = '';
+                                        }
+                                    }}
+                                    className="bg-transparent border-b border-dashed border-slate-300 dark:border-slate-600 px-1 py-1 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-indigo-500 w-24"
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* Goals Toggle */}
