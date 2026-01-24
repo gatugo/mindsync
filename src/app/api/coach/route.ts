@@ -359,6 +359,7 @@ export async function POST(request: NextRequest) {
         // STREAMING for Chat, Advice, Summary, Predict
         if (body.mode !== 'schedule_assist') {
             try {
+                console.log(`Starting Groq stream for mode: ${body.mode}`);
                 const stream = await callGroqStream(prompt);
                 return new NextResponse(stream, {
                     headers: {
@@ -368,23 +369,35 @@ export async function POST(request: NextRequest) {
                     },
                 });
             } catch (err) {
-                // Fallback for stream errors
-                return NextResponse.json({ success: false, error: 'Stream failed' }, { status: 500 });
+                console.error('Streaming error in /api/coach:', err);
+                return NextResponse.json({
+                    success: false,
+                    error: 'Stream failed',
+                    message: err instanceof Error ? err.message : String(err)
+                }, { status: 500 });
             }
         }
 
-        // JSON for Schedule Assist (needs strict parsing)
+        // JSON for Schedule Assist
         else {
             try {
+                console.log('Fetching Groq JSON for schedule_assist');
                 const jsonResponse = await callGroqJSON(prompt);
                 return NextResponse.json({ success: true, response: jsonResponse });
             } catch (err) {
-                return NextResponse.json({ success: false, error: 'JSON generation failed' }, { status: 500 });
+                console.error('JSON error in /api/coach:', err);
+                return NextResponse.json({
+                    success: false,
+                    error: 'JSON generation failed',
+                    message: err instanceof Error ? err.message : String(err)
+                }, { status: 500 });
             }
         }
     } catch (error) {
-        console.error('AI Coach error:', error);
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        return NextResponse.json({ success: false, error: message }, { status: 500 });
+        console.error('Final catch in /api/coach:', error);
+        return NextResponse.json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        }, { status: 500 });
     }
 }

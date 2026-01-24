@@ -1,46 +1,25 @@
-# Progress Notes - Jan 21, 2026
+# Session Progress: AI Coach & 'Plan My Day' Optimization
+**Date:** 2026-01-24
 
-## AI Coach Enhancements & UI Polish
+## 🚀 Accomplishments
+- **authoritative Planning Mode**: Refined the `api/coach` prompt to use a "Daily Architect" persona. It now specifically targets free slots and incorporates sleep schedules.
+- **Header UX Overhaul**: 
+  - Added a permanent **Exit (X) Icon** next to the **Trash (Clear)** icon in `AICoachScreen.tsx` and `AICoachModal.tsx`.
+  - Functional separation: X returns to 'Today' tab (preserving state), Trash wipes conversation.
+- **Re-Designed Suggestion Cards**:
+  - Implemented side-by-side, equal-width buttons: **[ Add to Timeline ]** and **[ Suggest Another ]**.
+  - Improved mobile ergonomics by ensuring buttons take the full width of the card.
+- **Reliable 'Plan My Day' Trigger**: Optimized `page.tsx` and `AICoachScreen.tsx` to ensure clicking the Plan button auto-starts the "Plan" mode immediately.
+- **Diagnostic Logging**: Added verbose server-side logs in `route.ts` to identify 500 errors during streaming.
 
-### Achieved
-1.  **Mobile DatePicker Fix**: Resolved layout issues on mobile devices by centering the calendar modal.
-2.  **User Personalization**:
-    -   Added `UserPreferences` (Hobbies, Interests, Passions) to `useStore`.
-    -   Integrated preferences into the AI Coach's system prompt context.
-    -   AI now tailors advice based on these psychological "Child" needs.
-3.  **Explicit Communication**:
-    -   Updated `COACH_SYSTEM_PROMPT` to explicitly confirm scheduled dates and times in natural language responses.
-4.  **UI/UX Improvements**:
-    -   **Send Button**: Replaced with a branded, gradient-styled button using the Lucide `Send` icon. Matches the app's indigo-purple theme.
-    -   **Chat Input**: Made the input always active. Clicking it automatically switches the mode to 'Chat', removing friction.
-    -   **Alignment**: Fixed vertical alignment issues between the input field and the send button (`h-14`).
-5.  **Anonymization**:
-    -   Replaced personal user data in `src/store/useStore.ts` with generic placeholders (Reading, Hiking, etc.) to prepare the codebase for public repository sharing.
-    -   **Local Override**: Configured the app to read personal preferences from `.env.local` (specifically `NEXT_PUBLIC_USER_HOBBIES`, etc.). This allows you to keep your personal context active locally while pushing safe, generic code to GitHub.
+## 🛠️ Technical Fixes
+- Re-wrote `AICoachScreen` and `AICoachModal` from scratch to resolve persistent layout issues where buttons were hidden or misaligned.
+- Synchronized `initialMode` state transition to ensure the UI highlights the correct mode active in the coach.
 
-### Jan 24, 2026 - AI Coach Intelligence Overhaul & Date Fixes
+## ⚠️ Pending / Next Session
+- **Server Debugging**: The `npm run dev` command showed Port 3000 in use by process 16200. Next session should free up the port or use the 3001 instance.
+- **API Failure Diagnosis**: Monitor terminal logs for "Starting Groq stream for mode: predict". If 500 errors persist, investigate the Groq SDK streaming connection.
+- **Projected Impact implementation**: The backend is ready to send projected impact scores; the frontend UI for these badges is the next logical step.
 
-#### 1. AI Coach Intelligence & Specificity
-*   **Overhauled Prompts**: Updated `COACH_SYSTEM_PROMPT` to demand **Authoritative & Specific** advice. The Coach now prescribes concrete tasks with specific durations and times instead of generic suggestions.
-*   **Context Filtering**: Fixed a major bug where the AI was receiving the *entire* task history as "Today's Tasks". It now strictly receives only the current local day's tasks, making its insights much sharper.
-*   **Conflict Resolution**: Improved `calculateFreeSlots` and AI instructions to better resolve scheduling conflicts based on the user's "Available Slots".
-
-#### 2. Robust Date/Time Parsing & Display
-*   **Timezone Fix**: Resolved a critical bug where "Detected" dates (like "tomorrow") were shown as the previous day in Western timezones (PST). Dates are now interpreted as **Local Midday** for display.
-*   **Unified Action Blocks**: Standardized the `[ACTION: CREATE_TASK]` format across all AI modes to include `Date` (YYYY-MM-DD), ensuring tasks are added to the correct day regardless of the conversation context.
-*   **Case-Insensitive Parsing**: Added robustness to the frontend parsing logic to handle diverse AI output formats (e.g., `[action: create_task]`).
-
-#### 3. Infrastructure & Tools
-*   **Browser Agent Fix**: Diagnosed and applied a fix for the browser tool's environment (setting `$HOME`).
-*   **Build Verification**: Verified all changes with `npm run build`.
-
-### Jan 23, 2026 - AI Sync & Polish
-- **Time Awareness**: AI now knows the exact local time for relative scheduling.
-- **Streaming**: AI responses now stream word-by-word.
-- **Mobile Header**: Fixed crowding by compacting buttons.
-- **Security**: Secured data import/export behind a login-gated modal.
-
-### Future Plans / Next Steps
-*   **Persist Rate Limits**: Move from in-memory (Map) to Redis (Upstash) for production robustness.
-*   **E2E Testing**: Fix the browser agent environment permanently and add core flow tests.
-*   **PWA**: Finalize service worker and manifest for installation.
+## 📝 Notes for Next Version
+- User is currently seeing a cached or production version (`npm start`). **Must run `npm run dev`** to verify these latest UI/UX shifts.
