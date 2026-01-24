@@ -130,7 +130,7 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
 
     return (
         <div className="fixed top-[81px] left-0 right-0 z-40 flex justify-center px-4 animate-in slide-in-from-top-4 fade-in duration-300 pointer-events-none">
-            <div className="w-full max-w-md pointer-events-auto bg-slate-800/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl relative overflow-visible group">
+            <div className="w-full max-w-md pointer-events-auto bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_0_50px_-12px_rgba(99,102,241,0.25)] ring-1 ring-white/10 relative overflow-visible group">
 
                 {/* Close Button (subtle) */}
                 <button
@@ -140,12 +140,12 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                         e.stopPropagation();
                         onClose();
                     }}
-                    className="absolute top-3 right-3 z-50 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                    className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 p-2 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-colors"
                 >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                 </button>
 
-                <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pt-2">
                     {/* Main Input */}
                     <div className="relative">
                         <input
@@ -154,19 +154,19 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                             value={title}
                             onChange={(e) => { setTitle(e.target.value); setAIError(null); }}
                             placeholder="Type to add (e.g., 'Gym at 5pm')..."
-                            className="w-full bg-transparent text-xl font-medium text-white placeholder:text-white/20 focus:outline-none py-2 pr-8"
+                            className="w-full bg-transparent text-xl sm:text-2xl font-semibold text-white placeholder:text-white/30 focus:outline-none py-2 pr-8 leading-relaxed"
                         />
                     </div>
 
                     {/* AI Error Message */}
                     {aiError && (
-                        <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5">
+                        <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5 font-medium animate-in fade-in slide-in-from-top-1">
                             {aiError}
                         </div>
                     )}
 
                     {/* Details Section - Responsive Layout */}
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 sm:gap-5">
                         {/* Row 1: Type, Date, Time */}
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             {/* Type Selector - uses Portal to escape stacking context */}
@@ -175,7 +175,7 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                                     ref={typeButtonRef}
                                     type="button"
                                     onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                                    className="flex items-center gap-2 bg-slate-900/50 hover:bg-slate-900/80 border border-white/5 rounded-lg px-3 py-2 text-sm text-white/90 transition-all"
+                                    className="flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm text-white/90 transition-all font-medium"
                                 >
                                     <span>{typeConfig[type].emoji}</span>
                                     <span>{typeConfig[type].label}</span>
@@ -191,7 +191,7 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                                         />
                                         {/* Dropdown menu rendered at document.body level */}
                                         <div
-                                            className="fixed z-[9999] bg-slate-800 border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[120px] animate-in fade-in zoom-in-95 duration-100"
+                                            className="fixed z-[9999] bg-slate-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[140px] animate-in fade-in zoom-in-95 duration-100 p-1"
                                             style={{ top: coords.top, left: coords.left }}
                                             onClick={(e) => e.stopPropagation()}
                                         >
@@ -204,10 +204,10 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                                                         setType(t);
                                                         setIsTypeDropdownOpen(false);
                                                     }}
-                                                    className={`w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-white/10 text-sm text-white/80 ${type === t ? 'bg-white/10' : ''}`}
+                                                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg text-sm transition-colors ${type === t ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
                                                 >
                                                     <span>{typeConfig[t].emoji}</span>
-                                                    <span>{typeConfig[t].label}</span>
+                                                    <span className="font-medium">{typeConfig[t].label}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -215,44 +215,44 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
                                 )}
                             </div>
 
-                            <div className="hidden sm:block h-4 w-px bg-white/10" />
+                            <div className="hidden sm:block h-5 w-px bg-white/10" />
 
                             {/* Date Picker Wrapper */}
-                            <div className="flex-1 min-w-[120px] max-w-[140px]">
+                            <div className="flex-1 min-w-[110px] sm:min-w-[120px] max-w-[140px]">
                                 <DatePicker value={date} onChange={setDate} placeholder="Today" />
                             </div>
 
                             {/* Time Picker Wrapper */}
-                            <div className="flex-1 min-w-[100px] max-w-[120px]">
+                            <div className="flex-1 min-w-[90px] sm:min-w-[100px] max-w-[120px]">
                                 <TimePicker value={time} onChange={setTime} placeholder="Any time" />
                             </div>
                         </div>
 
                         {/* Row 2: AI Button + Add Task */}
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center justify-between gap-3 sm:gap-4 pt-1">
                             {/* AI Smart Add Button */}
                             <button
                                 type="button"
                                 onClick={handleSmartAdd}
                                 disabled={isAILoading || !title.trim()}
-                                className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
+                                className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 sm:gap-2.5 hover:scale-[1.02] active:scale-95 border border-white/10"
                             >
                                 {isAILoading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
                                     <Sparkles className="w-4 h-4" />
                                 )}
-                                <span>Smart Add</span>
+                                <span className="whitespace-nowrap">Smart Add</span>
                             </button>
 
                             {/* Add Button */}
                             <button
                                 type="submit"
                                 disabled={!title.trim()}
-                                className="flex-1 sm:flex-none bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5"
+                                className="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 border border-white/5"
                             >
                                 <Plus className="w-4 h-4" />
-                                <span>Add Task</span>
+                                <span className="whitespace-nowrap">Add Task</span>
                             </button>
                         </div>
                     </div>

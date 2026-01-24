@@ -146,13 +146,13 @@ export default function Home() {
     <div className="min-h-screen bg-white dark:bg-[#0f172a] transition-colors duration-200">
       {/* Header - Only show on Today tab */}
       {activeTab === 'today' && (
-        <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 py-4">
+        <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl px-6 py-4">
           <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-            <a href="https://mindsync-topaz.vercel.app/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                <span className="material-icons-round text-2xl">psychology</span>
+            <a href="https://mindsync-topaz.vercel.app/" className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                <span className="material-icons-round text-xl sm:text-2xl">psychology</span>
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col hidden sm:flex">
                 <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">MindSync</h1>
                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em] hidden md:block">Sync. Focus. Flow.</p>
               </div>
@@ -160,12 +160,12 @@ export default function Home() {
 
             <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
               {/* Score Badge */}
-              <div className="flex items-center gap-3 bg-[#1e293b] py-2 px-4 rounded-full border border-slate-700/50 score-glow relative overflow-hidden group">
+              <div className="flex items-center gap-2 sm:gap-3 bg-[#1e293b] py-1.5 px-3 sm:py-2 sm:px-4 rounded-full border border-slate-700/50 score-glow relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="text-2xl drop-shadow-sm filter grayscale-[0.2] group-hover:grayscale-0 transition-all transform group-hover:scale-110 duration-200" role="img" aria-label="mood">{getBalanceEmoji()}</span>
+                <span className="text-xl sm:text-2xl drop-shadow-sm filter grayscale-[0.2] group-hover:grayscale-0 transition-all transform group-hover:scale-110 duration-200" role="img" aria-label="mood">{getBalanceEmoji()}</span>
                 <div className="flex flex-col leading-none">
-                  <span className="text-lg font-bold text-white tracking-tight">{score}</span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Score</span>
+                  <span className="text-base sm:text-lg font-bold text-white tracking-tight">{score}</span>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest hidden xs:block">Score</span>
                 </div>
               </div>
 
