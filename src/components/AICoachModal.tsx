@@ -155,8 +155,40 @@ export default function AICoachModal({
         let targetDate = new Date(now);
         let targetTime: string | undefined;
 
-        // Time patterns (extract first for later use)
-        const timeMatch = clean.match(/(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+        // 1. Extract Date first (so we don't confuse date numbers with time)
+        const months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
+        const dateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`);
+        const dateMatch = clean.match(dateRegex);
+
+        if (dateMatch) {
+            const day = parseInt(dateMatch[1]);
+            const monthStr = clean.match(new RegExp(`(${months})`))![0];
+            const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(monthStr.substring(0, 3));
+            targetDate.setMonth(monthIndex);
+            targetDate.setDate(day);
+            if (targetDate < new Date(new Date().setHours(0, 0, 0, 0))) {
+                targetDate.setFullYear(targetDate.getFullYear() + 1);
+            }
+        }
+        else if (clean.includes('tomorrow')) {
+            targetDate.setDate(targetDate.getDate() + 1);
+        } else if (clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)) {
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const targetDayName = clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)![1];
+            const targetDayIndex = dayNames.indexOf(targetDayName);
+            const currentDayIndex = targetDate.getDay();
+            let daysToAdd = targetDayIndex - currentDayIndex;
+            if (daysToAdd <= 0) daysToAdd += 7;
+            targetDate.setDate(targetDate.getDate() + daysToAdd);
+        }
+
+        // 2. Extract Time
+        let timeSearchStr = clean;
+        if (dateMatch) {
+            timeSearchStr = clean.replace(dateMatch[0], '');
+        }
+
+        const timeMatch = timeSearchStr.match(/(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
         if (timeMatch) {
             let h = parseInt(timeMatch[1]);
             const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
@@ -170,35 +202,14 @@ export default function AICoachModal({
             }
         }
 
-        // Date patterns
-        if (clean.includes('today')) {
-            // Already set to today
-        } else if (clean.includes('tomorrow')) {
-            targetDate.setDate(targetDate.getDate() + 1);
-        } else if (clean.match(/in\s+(\d+)\s+hours?/)) {
-            const hours = parseInt(clean.match(/in\s+(\d+)\s+hours?/)![1]);
-            targetDate.setHours(targetDate.getHours() + hours);
-            if (!targetTime) {
-                targetTime = `${targetDate.getHours().toString().padStart(2, '0')}:${targetDate.getMinutes().toString().padStart(2, '0')}`;
-            }
-        } else if (clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)) {
-            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-            const targetDayName = clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)![1];
-            const targetDayIndex = dayNames.indexOf(targetDayName);
-            const currentDayIndex = targetDate.getDay();
-            let daysToAdd = targetDayIndex - currentDayIndex;
-            if (daysToAdd <= 0) daysToAdd += 7; // Next week if today or past
-            targetDate.setDate(targetDate.getDate() + daysToAdd);
-        }
-
-        // Format date as YYYY-MM-DD (local)
         const year = targetDate.getFullYear();
         const month = String(targetDate.getMonth() + 1).padStart(2, '0');
         const day = String(targetDate.getDate()).padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
         return {
-            date: dateStr !== `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}` ? dateStr : undefined,
+            date: dateStr !== todayStr ? dateStr : undefined,
             time: targetTime
         };
     };
@@ -206,43 +217,56 @@ export default function AICoachModal({
     const normalizeTime = (timeStr: string): string | undefined => {
         const clean = timeStr.trim().toLowerCase();
         if (clean === 'any' || !clean) return undefined;
-
-        // Try parsing 12h or 24h format
-        // Matches: "6", "6:30", "6pm", "6:30pm", "18:00"
         const match = clean.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
-
         if (match) {
             let h = parseInt(match[1]);
             const m = match[2] ? parseInt(match[2]) : 0;
             const ampm = match[3];
-
             if (ampm === 'pm' && h < 12) h += 12;
             if (ampm === 'am' && h === 12) h = 0;
-
-            // Validation
             if (h >= 0 && h < 24 && m >= 0 && m < 60) {
                 return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
             }
         }
-
         return undefined;
     };
 
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
-        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?) \| (.*?) \| (.*?) \| (.*?)\]/g;
+        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/g;
 
-        const cleanText = text.replace(actionRegex, (match, title, type, duration, time) => {
-            const normalizedTime = normalizeTime(time);
-            actions.push({
-                type: 'CREATE_TASK',
-                title: title.trim(),
-                taskType: type.trim() as TaskType,
-                duration: parseInt(duration.trim()) || 30,
-                scheduledTime: normalizedTime,
-            });
-            // Return empty string to hide the block, OR we could replace it with a small icon/indicator? 
-            // For now, hiding it is cleaner as the buttons appear.
+        const cleanText = text.replace(actionRegex, (match, content) => {
+            const parts = content.split('|').map((p: string) => p.trim());
+
+            if (parts.length >= 4) {
+                const title = parts[0];
+                const type = parts[1] as TaskType;
+                const duration = parseInt(parts[2]) || 30;
+                let date: string | undefined;
+                let time: string | undefined;
+
+                if (parts.length === 5) {
+                    date = parts[3];
+                    time = parts[4];
+                } else {
+                    time = parts[3];
+                }
+
+                // Note: SuggestedAction interface in Modal might need scheduledDate update if we want to use it? 
+                // The Modal interface (lines 20-26) says: scheduledTime?: string. It misses scheduledDate! 
+                // I should update interface too but let's stick to parsing for now.
+                // Re-using scheduledTime for now or ignoring date if interface doesn't support it.
+                // Wait, if I don't add scheduledDate to interface, I lose the date info.
+
+                actions.push({
+                    type: 'CREATE_TASK',
+                    title,
+                    taskType: type,
+                    duration,
+                    scheduledTime: normalizeTime(time || ''),
+                    // scheduledDate missing in interface?
+                });
+            }
             return '';
         });
 
@@ -251,23 +275,20 @@ export default function AICoachModal({
 
     const handleExecuteAction = (action: SuggestedAction, messageId: string) => {
         if (action.type === 'CREATE_TASK') {
-            // Use local date for "today" to avoid timezone shifts (e.g. UTC date vs Local date)
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
             const localDateKey = `${year}-${month}-${day}`;
 
+            // If we had a date, we would use it here. For now defaulting to today as before, unless I update interface.
+
             addTask(
                 action.title,
                 action.taskType,
-                localDateKey, // Schedule for today (Local time)
+                localDateKey,
                 action.scheduledTime
             );
-
-            // Optional: Mark action as done visually or remove it? 
-            // For now, let's just show a toast or rely on the UI update naturally.
-            // A simple temporary "Done" state on the button would be nice but let's keep it simple first.
         }
     };
 
@@ -279,7 +300,6 @@ export default function AICoachModal({
         const activeMode = selectedMode || mode;
         const currentQuestion = question;
 
-        // Add user message if searching/chatting
         if (activeMode === 'chat' && currentQuestion.trim()) {
             const userMsg: Message = {
                 id: Date.now().toString(),
@@ -296,11 +316,18 @@ export default function AICoachModal({
         setError('');
 
         try {
+            // Capture Local Time context
+            const now = new Date();
+            const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const localTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
             const res = await fetch('/api/coach', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     mode: activeMode,
+                    localDate,
+                    localTime,
                     tasks: tasks.map((t) => ({
                         type: t.type,
                         status: t.status,

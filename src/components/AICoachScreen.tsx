@@ -152,25 +152,22 @@ export default function AICoachScreen({
         let targetDate = new Date(now);
         let targetTime: string | undefined;
 
-        // Time patterns (extract first for later use)
-        const timeMatch = clean.match(/(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
-        if (timeMatch) {
-            let h = parseInt(timeMatch[1]);
-            const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-            const ampm = timeMatch[3];
+        // 1. Extract Date first (so we don't confuse date numbers with time)
+        const months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
+        const dateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`);
+        const dateMatch = clean.match(dateRegex);
 
-            if (ampm === 'pm' && h < 12) h += 12;
-            if (ampm === 'am' && h === 12) h = 0;
-
-            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-                targetTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        if (dateMatch) {
+            const day = parseInt(dateMatch[1]);
+            const monthStr = clean.match(new RegExp(`(${months})`))![0];
+            const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(monthStr.substring(0, 3));
+            targetDate.setMonth(monthIndex);
+            targetDate.setDate(day);
+            if (targetDate < new Date(new Date().setHours(0, 0, 0, 0))) {
+                targetDate.setFullYear(targetDate.getFullYear() + 1);
             }
         }
-
-        // Date patterns
-        if (clean.includes('today')) {
-            // Already set to today
-        } else if (clean.includes('tomorrow')) {
+        else if (clean.includes('tomorrow')) {
             targetDate.setDate(targetDate.getDate() + 1);
         } else if (clean.match(/in\s+(\d+)\s+hours?/)) {
             const hours = parseInt(clean.match(/in\s+(\d+)\s+hours?/)![1]);
@@ -184,18 +181,38 @@ export default function AICoachScreen({
             const targetDayIndex = dayNames.indexOf(targetDayName);
             const currentDayIndex = targetDate.getDay();
             let daysToAdd = targetDayIndex - currentDayIndex;
-            if (daysToAdd <= 0) daysToAdd += 7; // Next week if today or past
+            if (daysToAdd <= 0) daysToAdd += 7;
             targetDate.setDate(targetDate.getDate() + daysToAdd);
         }
 
-        // Format date as YYYY-MM-DD (local)
+        // 2. Extract Time
+        let timeSearchStr = clean;
+        if (dateMatch) {
+            timeSearchStr = clean.replace(dateMatch[0], '');
+        }
+
+        const timeMatch = timeSearchStr.match(/(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+        if (timeMatch) {
+            let h = parseInt(timeMatch[1]);
+            const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+            const ampm = timeMatch[3];
+
+            if (ampm === 'pm' && h < 12) h += 12;
+            if (ampm === 'am' && h === 12) h = 0;
+
+            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
+                targetTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            }
+        }
+
         const year = targetDate.getFullYear();
         const month = String(targetDate.getMonth() + 1).padStart(2, '0');
         const day = String(targetDate.getDate()).padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
         return {
-            date: dateStr !== `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}` ? dateStr : undefined,
+            date: dateStr !== todayStr ? dateStr : undefined,
             time: targetTime
         };
     };
