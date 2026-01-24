@@ -1,10 +1,10 @@
 'use client';
 
-import { Home, Calendar, BarChart2, MessageSquare, Settings } from 'lucide-react';
+import { Home, BarChart2, MessageSquare, Settings } from 'lucide-react';
 
 interface BottomNavProps {
-    currentTab: 'today' | 'plan' | 'coach' | 'stats' | 'settings';
-    onTabChange: (tab: 'today' | 'plan' | 'coach' | 'stats' | 'settings') => void;
+    currentTab: 'today' | 'coach' | 'stats' | 'settings';
+    onTabChange: (tab: 'today' | 'coach' | 'stats' | 'settings') => void;
 }
 
 export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
@@ -17,14 +17,6 @@ export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
                 >
                     <Home className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Home</span>
-                </button>
-
-                <button
-                    onClick={() => onTabChange('plan')}
-                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'plan' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                >
-                    <Calendar className="w-5 h-5" />
-                    <span className="text-[10px] font-medium">Plan</span>
                 </button>
 
                 <button
@@ -54,3 +46,4 @@ export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
         </nav>
     );
 }
+

@@ -32,7 +32,7 @@ export default function Home() {
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showGoals, setShowGoals] = useState(false);
-  const [activeTab, setActiveTab] = useState<'today' | 'plan' | 'stats' | 'coach' | 'settings'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'stats' | 'coach' | 'settings'>('today');
   const [activeCoachMode, setActiveCoachMode] = useState<'advice' | 'chat' | 'summary' | 'predict'>('advice');
   const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -244,35 +244,7 @@ export default function Home() {
             </div>
           )}
 
-          {activeTab === 'plan' && (
-            <div className="h-full flex flex-col overflow-hidden pb-4 relative">
-              <div className="flex-1 min-h-0">
-                <TimelineView
-                  tasks={tasks}
-                  onMoveTask={moveTask}
-                  onDeleteTask={deleteTask}
-                  onUpdateTask={updateTask}
-                  onAddTask={addTask}
-                  onEditTask={setEditingTask}
-                />
-              </div>
-              <div className="absolute bottom-6 left-0 right-0 flex justify-center px-6 pointer-events-none z-20">
-                <button
-                  onClick={() => {
-                    setActiveCoachMode('predict');
-                    setActiveTab('coach');
-                  }}
-                  className="pointer-events-auto bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold shadow-2xl shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 border border-white/20 group"
-                >
-                  <span className="material-icons-round text-2xl group-hover:rotate-12 transition-transform">auto_awesome</span>
-                  <div className="flex flex-col items-start leading-none">
-                    <span className="text-lg">Plan My Day</span>
-                    <span className="text-[10px] text-white/70 uppercase tracking-widest mt-0.5">AI Schedule Optimizer</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
+
 
           {activeTab === 'stats' && (
             <div className="p-4">

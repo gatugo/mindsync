@@ -151,155 +151,168 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
     if (!isOpen) return null;
 
     return (
-        <div className="fixed top-[81px] left-0 right-0 z-40 flex justify-center px-4 animate-in slide-in-from-top-4 fade-in duration-300 pointer-events-none">
-            <div className="w-full max-w-md pointer-events-auto bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_0_50px_-12px_rgba(99,102,241,0.25)] ring-1 ring-white/10 relative overflow-visible group">
+        <>
+            {/* Backdrop - click to close */}
+            <div
+                className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-200"
+                onClick={onClose}
+            />
 
-                {/* Close Button (subtle) */}
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onClose();
-                    }}
-                    className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 p-2 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+            <div className="fixed top-[81px] left-0 right-0 z-[70] flex justify-center px-4 animate-in slide-in-from-top-4 fade-in duration-300 pointer-events-none">
+                <div
+                    className="w-full max-w-md pointer-events-auto bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 shadow-[0_0_50px_-12px_rgba(99,102,241,0.25)] ring-1 ring-white/10 relative overflow-visible group"
+                    onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing
                 >
-                    <X className="w-5 h-5" />
-                </button>
 
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pt-2">
-                    {/* Main Input */}
-                    <div className="relative">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={title}
-                            onChange={(e) => { setTitle(e.target.value); setAIError(null); }}
-                            placeholder="Type to add (e.g., 'Gym at 5pm')..."
-                            className="w-full bg-transparent text-xl sm:text-2xl font-semibold text-white placeholder:text-white/30 focus:outline-none py-2 pr-8 leading-relaxed"
-                        />
-                    </div>
 
-                    {/* AI Error Message */}
-                    {aiError && (
-                        <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5 font-medium animate-in fade-in slide-in-from-top-1">
-                            {aiError}
+                    {/* Close Button (subtle) */}
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onClose();
+                        }}
+                        className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 p-2 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+
+                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pt-2">
+                        {/* Main Input */}
+                        <div className="relative">
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={title}
+                                onChange={(e) => { setTitle(e.target.value); setAIError(null); }}
+                                placeholder="Type to add (e.g., 'Gym at 5pm')..."
+                                className="w-full bg-transparent text-xl sm:text-2xl font-semibold text-white placeholder:text-white/30 focus:outline-none py-2 pr-8 leading-relaxed"
+                            />
                         </div>
-                    )}
 
-                    {/* Natural Language Preview (Smart Detection) */}
-                    {title.trim() && (() => {
-                        const parsed = parseNaturalDateTime(title);
-                        if (parsed.date || parsed.time || parsed.duration) {
-                            return (
-                                <div className="text-xs text-indigo-300/80 flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2 animate-in fade-in slide-in-from-top-1">
-                                    <Sparkles className="w-3 h-3" />
-                                    <span>
-                                        Detected:
-                                        {parsed.date && ` ${new Date(parsed.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
-                                        {parsed.date && parsed.time && ' @'}
-                                        {parsed.time && ` ${format12h(parsed.time)}`}
-                                        {parsed.duration && ` (${parsed.duration} mins)`}
-                                    </span>
+                        {/* AI Error Message */}
+                        {aiError && (
+                            <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5 font-medium animate-in fade-in slide-in-from-top-1">
+                                {aiError}
+                            </div>
+                        )}
+
+                        {/* Natural Language Preview (Smart Detection) */}
+                        {title.trim() && (() => {
+                            const parsed = parseNaturalDateTime(title);
+                            if (parsed.date || parsed.time || parsed.duration) {
+                                return (
+                                    <div className="text-xs text-indigo-300/80 flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2 animate-in fade-in slide-in-from-top-1">
+                                        <Sparkles className="w-3 h-3" />
+                                        <span>
+                                            Detected:
+                                            {parsed.date && ` ${new Date(parsed.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+                                            {parsed.date && parsed.time && ' @'}
+                                            {parsed.time && ` ${format12h(parsed.time)}`}
+                                            {parsed.duration && ` (${parsed.duration} mins)`}
+                                        </span>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
+                        {/* Details Section - Responsive Layout */}
+                        <div className="flex flex-col gap-3 sm:gap-5">
+                            {/* Row 1: Type, Date, Time */}
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                {/* Type Selector - uses Portal to escape stacking context */}
+                                <div className="relative">
+                                    <button
+                                        ref={typeButtonRef}
+                                        type="button"
+                                        onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                                        className="flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm text-white/90 transition-all font-medium"
+                                    >
+                                        <span>{typeConfig[type].emoji}</span>
+                                        <span>{typeConfig[type].label}</span>
+                                        <ChevronDown className="w-3 h-3 text-white/50" />
+                                    </button>
+
+                                    {isTypeDropdownOpen && (
+                                        <Portal>
+                                            {/* Invisible backdrop to catch outside clicks */}
+                                            <div
+                                                className="fixed inset-0 z-[9990]"
+                                                onClick={(e) => { e.stopPropagation(); setIsTypeDropdownOpen(false); }}
+                                            />
+                                            {/* Dropdown menu rendered at document.body level */}
+                                            <div
+                                                className="fixed z-[9999] bg-slate-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[140px] animate-in fade-in zoom-in-95 duration-100 p-1"
+                                                style={{ top: coords.top, left: coords.left }}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {(Object.keys(typeConfig) as TaskType[]).map((t) => (
+                                                    <button
+                                                        key={t}
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setType(t);
+                                                            setIsTypeDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg text-sm transition-colors ${type === t ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
+                                                    >
+                                                        <span>{typeConfig[t].emoji}</span>
+                                                        <span className="font-medium">{typeConfig[t].label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </Portal>
+                                    )}
                                 </div>
-                            );
-                        }
-                        return null;
-                    })()}
 
-                    {/* Details Section - Responsive Layout */}
-                    <div className="flex flex-col gap-3 sm:gap-5">
-                        {/* Row 1: Type, Date, Time */}
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                            {/* Type Selector - uses Portal to escape stacking context */}
-                            <div className="relative">
+                                <div className="hidden sm:block h-5 w-px bg-white/10" />
+
+                                {/* Date Picker Wrapper */}
+                                <div className="flex-1 min-w-[110px] sm:min-w-[120px] max-w-[140px]">
+                                    <DatePicker value={date} onChange={setDate} placeholder="Today" />
+                                </div>
+
+                                {/* Time Picker Wrapper */}
+                                <div className="flex-1 min-w-[90px] sm:min-w-[100px] max-w-[120px]">
+                                    <TimePicker value={time} onChange={setTime} placeholder="Any time" />
+                                </div>
+                            </div>
+
+                            {/* Row 2: AI Button + Add Task */}
+                            <div className="flex items-center justify-between gap-3 sm:gap-4 pt-1">
+                                {/* AI Smart Add Button */}
                                 <button
-                                    ref={typeButtonRef}
                                     type="button"
-                                    onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                                    className="flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm text-white/90 transition-all font-medium"
+                                    onClick={handleSmartAdd}
+                                    disabled={isAILoading || !title.trim()}
+                                    className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 sm:gap-2.5 hover:scale-[1.02] active:scale-95 border border-white/10"
                                 >
-                                    <span>{typeConfig[type].emoji}</span>
-                                    <span>{typeConfig[type].label}</span>
-                                    <ChevronDown className="w-3 h-3 text-white/50" />
+                                    {isAILoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="w-4 h-4" />
+                                    )}
+                                    <span className="whitespace-nowrap">Smart Add</span>
                                 </button>
 
-                                {isTypeDropdownOpen && (
-                                    <Portal>
-                                        {/* Invisible backdrop to catch outside clicks */}
-                                        <div
-                                            className="fixed inset-0 z-[9990]"
-                                            onClick={(e) => { e.stopPropagation(); setIsTypeDropdownOpen(false); }}
-                                        />
-                                        {/* Dropdown menu rendered at document.body level */}
-                                        <div
-                                            className="fixed z-[9999] bg-slate-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl min-w-[140px] animate-in fade-in zoom-in-95 duration-100 p-1"
-                                            style={{ top: coords.top, left: coords.left }}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            {(Object.keys(typeConfig) as TaskType[]).map((t) => (
-                                                <button
-                                                    key={t}
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setType(t);
-                                                        setIsTypeDropdownOpen(false);
-                                                    }}
-                                                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg text-sm transition-colors ${type === t ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}
-                                                >
-                                                    <span>{typeConfig[t].emoji}</span>
-                                                    <span className="font-medium">{typeConfig[t].label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </Portal>
-                                )}
-                            </div>
-
-                            <div className="hidden sm:block h-5 w-px bg-white/10" />
-
-                            {/* Date Picker Wrapper */}
-                            <div className="flex-1 min-w-[110px] sm:min-w-[120px] max-w-[140px]">
-                                <DatePicker value={date} onChange={setDate} placeholder="Today" />
-                            </div>
-
-                            {/* Time Picker Wrapper */}
-                            <div className="flex-1 min-w-[90px] sm:min-w-[100px] max-w-[120px]">
-                                <TimePicker value={time} onChange={setTime} placeholder="Any time" />
+                                {/* Add Button */}
+                                <button
+                                    type="submit"
+                                    disabled={!title.trim()}
+                                    className="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 border border-white/5"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span className="whitespace-nowrap">Add Task</span>
+                                </button>
                             </div>
                         </div>
-
-                        {/* Row 2: AI Button + Add Task */}
-                        <div className="flex items-center justify-between gap-3 sm:gap-4 pt-1">
-                            {/* AI Smart Add Button */}
-                            <button
-                                type="button"
-                                onClick={handleSmartAdd}
-                                disabled={isAILoading || !title.trim()}
-                                className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 sm:gap-2.5 hover:scale-[1.02] active:scale-95 border border-white/10"
-                            >
-                                {isAILoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Sparkles className="w-4 h-4" />
-                                )}
-                                <span className="whitespace-nowrap">Smart Add</span>
-                            </button>
-
-                            {/* Add Button */}
-                            <button
-                                type="submit"
-                                disabled={!title.trim()}
-                                className="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 border border-white/5"
-                            >
-                                <Plus className="w-4 h-4" />
-                                <span className="whitespace-nowrap">Add Task</span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
+        </>
     );
 }
+
