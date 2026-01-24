@@ -82,8 +82,8 @@ export default function Home() {
 
   const { score, balance } = getDailyScore();
 
-  const handleAddNewTask = (title: string, type: TaskType, date?: string, time?: string) => {
-    addTask(title, type, date, time);
+  const handleAddNewTask = (title: string, type: TaskType, date?: string, time?: string, duration?: number) => {
+    addTask(title, type, date, time, duration);
     // Optional: setIsAddTaskOpen(false); if we want auto-close
   };
 

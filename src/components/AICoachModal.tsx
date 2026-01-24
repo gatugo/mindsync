@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, ReactNode } from 'react';
 import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Task, DailySnapshot, Goal, TaskType } from '@/types';
+import { parseNaturalDateTime, format12h } from '@/lib/datePatterns';
 
 interface AICoachModalProps {
     isOpen: boolean;
@@ -149,7 +150,7 @@ export default function AICoachModal({
     };
 
     // Natural Language Date/Time Parser
-    const parseNaturalDateTime = (input: string): { date?: string; time?: string } => {
+    const _deprecated_parseNaturalDateTime = (input: string): { date?: string; time?: string } => {
         const clean = input.toLowerCase().trim();
         const now = new Date();
         let targetDate = new Date(now);
@@ -214,22 +215,7 @@ export default function AICoachModal({
         };
     };
 
-    const normalizeTime = (timeStr: string): string | undefined => {
-        const clean = timeStr.trim().toLowerCase();
-        if (clean === 'any' || !clean) return undefined;
-        const match = clean.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
-        if (match) {
-            let h = parseInt(match[1]);
-            const m = match[2] ? parseInt(match[2]) : 0;
-            const ampm = match[3];
-            if (ampm === 'pm' && h < 12) h += 12;
-            if (ampm === 'am' && h === 12) h = 0;
-            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-                return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-            }
-        }
-        return undefined;
-    };
+
 
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
@@ -263,7 +249,7 @@ export default function AICoachModal({
                     title,
                     taskType: type,
                     duration,
-                    scheduledTime: normalizeTime(time || ''),
+                    scheduledTime: parseNaturalDateTime(time || '').time,
                     // scheduledDate missing in interface?
                 });
             }
@@ -287,7 +273,8 @@ export default function AICoachModal({
                 action.title,
                 action.taskType,
                 localDateKey,
-                action.scheduledTime
+                action.scheduledTime,
+                action.duration
             );
         }
     };
@@ -398,14 +385,7 @@ export default function AICoachModal({
         { mode: 'predict' as CoachMode, icon: Bot, label: 'Tomorrow Plan' },
     ];
 
-    const format12hPreserve = (timeStr: string) => {
-        if (!timeStr) return '';
-        const [h, m] = timeStr.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const displayH = h % 12 || 12;
-        const displayM = `:${m.toString().padStart(2, '0')}`;
-        return `${displayH}${displayM} ${ampm}`;
-    };
+
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -519,7 +499,7 @@ export default function AICoachModal({
                                                 className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-xl text-sm transition-all border border-emerald-500/20 w-fit text-left group/btn"
                                             >
                                                 <PlusCircle className="w-4 h-4" />
-                                                <span>Add Task: <strong>{action.title}</strong> ({action.taskType}){action.scheduledTime ? ` @ ${format12hPreserve(action.scheduledTime)}` : ''}</span>
+                                                <span>Add Task: <strong>{action.title}</strong> ({action.taskType}){action.scheduledTime ? ` @ ${format12h(action.scheduledTime)}` : ''}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -587,7 +567,7 @@ export default function AICoachModal({
                                             <span>
                                                 Detected: {parsed.date && `${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
                                                 {parsed.date && parsed.time && ' @ '}
-                                                {parsed.time && format12hPreserve(parsed.time)}
+                                                {parsed.time && format12h(parsed.time)}
                                             </span>
                                         </div>
                                     );

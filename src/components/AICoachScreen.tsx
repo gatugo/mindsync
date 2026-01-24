@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, ReactNode } from 'react';
 import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Task, DailySnapshot, Goal, TaskType } from '@/types';
+import { parseNaturalDateTime, format12h } from '@/lib/datePatterns';
 
 interface AICoachScreenProps {
     tasks: Task[];
@@ -146,7 +147,7 @@ export default function AICoachScreen({
     };
 
     // Natural Language Date/Time Parser
-    const parseNaturalDateTime = (input: string): { date?: string; time?: string } => {
+    const _deprecated_parseNaturalDateTime = (input: string): { date?: string; time?: string } => {
         const clean = input.toLowerCase().trim();
         const now = new Date();
         let targetDate = new Date(now);
@@ -217,30 +218,7 @@ export default function AICoachScreen({
         };
     };
 
-    const normalizeTime = (timeStr: string): string | undefined => {
-        const clean = timeStr.trim().toLowerCase();
-        if (clean === 'any' || !clean) return undefined;
 
-        // Try parsing 12h or 24h format
-        // Matches: "6", "6:30", "6pm", "6:30pm", "18:00"
-        const match = clean.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
-
-        if (match) {
-            let h = parseInt(match[1]);
-            const m = match[2] ? parseInt(match[2]) : 0;
-            const ampm = match[3];
-
-            if (ampm === 'pm' && h < 12) h += 12;
-            if (ampm === 'am' && h === 12) h = 0;
-
-            // Validation
-            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-                return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-            }
-        }
-
-        return undefined;
-    };
 
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
@@ -274,7 +252,7 @@ export default function AICoachScreen({
                     taskType: type,
                     duration,
                     scheduledDate: date === 'any' ? undefined : date,
-                    scheduledTime: normalizeTime(time || ''),
+                    scheduledTime: parseNaturalDateTime(time || '').time,
                 });
             }
             return '';
@@ -300,7 +278,8 @@ export default function AICoachScreen({
                 action.title,
                 action.taskType,
                 targetDate,
-                action.scheduledTime
+                action.scheduledTime,
+                action.duration
             );
         }
     };
@@ -434,14 +413,7 @@ export default function AICoachScreen({
         { mode: 'predict' as CoachMode, icon: Bot, label: 'Plan' },
     ];
 
-    const format12hPreserve = (timeStr: string) => {
-        if (!timeStr) return '';
-        const [h, m] = timeStr.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const displayH = h % 12 || 12;
-        const displayM = `:${m.toString().padStart(2, '0')}`;
-        return `${displayH}${displayM} ${ampm}`;
-    };
+
 
     return (
         <div className="h-full flex flex-col bg-slate-900 overflow-hidden">
@@ -573,7 +545,7 @@ export default function AICoachScreen({
                                                         {action.scheduledTime && (
                                                             <>
                                                                 <span className="text-white/30">@</span>
-                                                                <span className="font-medium text-white/90">{format12hPreserve(action.scheduledTime)}</span>
+                                                                <span className="font-medium text-white/90">{format12h(action.scheduledTime)}</span>
                                                             </>
                                                         )}
                                                     </div>
@@ -660,7 +632,7 @@ export default function AICoachScreen({
                                         <span>
                                             Detected: {parsed.date && `${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
                                             {parsed.date && parsed.time && ' @ '}
-                                            {parsed.time && format12hPreserve(parsed.time)}
+                                            {parsed.time && format12h(parsed.time)}
                                         </span>
                                     </div>
                                 );

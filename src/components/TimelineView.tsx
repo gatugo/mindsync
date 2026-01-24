@@ -1,13 +1,14 @@
 import { Task, TaskType } from '@/types';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Pencil, Check, X, Trash2, Plus, Clock, ChevronLeft, ChevronRight, Calendar as CalendarIcon, LayoutList, Grid, Bot, Loader2, Sparkles } from 'lucide-react';
+import { parseNaturalDateTime, format12h } from '@/lib/datePatterns';
 
 interface TimelineViewProps {
     tasks: Task[];
     onMoveTask: (taskId: string, newStatus: 'TODO' | 'START' | 'DONE') => void;
     onDeleteTask: (taskId: string) => void;
     onUpdateTask: (taskId: string, updates: Partial<Pick<Task, 'title' | 'scheduledTime' | 'duration'>>) => void;
-    onAddTask: (title: string, type: TaskType, date: string, time: string) => void;
+    onAddTask: (title: string, type: TaskType, date: string, time: string, duration?: number) => void;
     onEditTask: (task: Task) => void;
 }
 
@@ -90,9 +91,11 @@ export default function TimelineView({
                 // Otherwise fallback to the slot the user clicked on.
                 const finalTime = suggestion.suggestedTime || creatingSlot;
                 const finalDate = suggestion.suggestedDate || formatDateKey(currentDate);
+                const parsedLocal = parseNaturalDateTime(newTaskTitle);
+                const finalDuration = suggestion.duration || parsedLocal.duration;
 
                 // Immediate Add
-                onAddTask(newTaskTitle.trim(), suggestedType as TaskType, finalDate, finalTime);
+                onAddTask(newTaskTitle.trim(), suggestedType as TaskType, finalDate, finalTime, finalDuration);
 
                 // Close modal
                 setCreatingSlot(null);
@@ -107,95 +110,10 @@ export default function TimelineView({
         }
     };
 
-    // Natural Language Date/Time Parser
-    const parseNaturalDateTime = (input: string): { date?: string; time?: string } => {
-        const clean = input.toLowerCase().trim();
-        const now = new Date();
-        let targetDate = new Date(now);
-        let targetTime: string | undefined;
 
-        // 1. Extract Date first (so we don't confuse date numbers with time)
-        const months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
-        const dateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`);
-        const dateMatch = clean.match(dateRegex);
-
-        if (dateMatch) {
-            const day = parseInt(dateMatch[1]);
-            // Find the month index
-            const monthStr = clean.match(new RegExp(`(${months})`))![0];
-            const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(monthStr.substring(0, 3));
-
-            // Set date (handle year rollover if needed, simple approach for now: current year)
-            // If month is before current month, assume next year? Or just current year.
-            targetDate.setMonth(monthIndex);
-            targetDate.setDate(day);
-            if (targetDate < new Date(new Date().setHours(0, 0, 0, 0))) {
-                // If date is in past, assume next year? (Optional logic)
-                targetDate.setFullYear(targetDate.getFullYear() + 1);
-            }
-        }
-        else if (clean.includes('tomorrow')) {
-            targetDate.setDate(targetDate.getDate() + 1);
-        } else if (clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)) {
-            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-            const targetDayName = clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)![1];
-            const targetDayIndex = dayNames.indexOf(targetDayName);
-            const currentDayIndex = targetDate.getDay();
-            let daysToAdd = targetDayIndex - currentDayIndex;
-            if (daysToAdd <= 0) daysToAdd += 7;
-            targetDate.setDate(targetDate.getDate() + daysToAdd);
-        }
-
-        // 2. Extract Time
-        // Avoid matching if preceded by month name (handled by removing date match from string?)
-        // Better: Use a stricter regex or check if the match overlaps with dateMatch
-        // Simple fix: if it looks like a time "at 5" "5pm" "17:00"
-
-        let timeSearchStr = clean;
-        if (dateMatch) {
-            timeSearchStr = clean.replace(dateMatch[0], ''); // Remove date part to avoid false positive
-        }
-
-        const timeMatch = timeSearchStr.match(/(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
-        if (timeMatch) {
-            let h = parseInt(timeMatch[1]);
-            const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-            const ampm = timeMatch[3];
-
-            // Fix: If simple number "5" without am/pm/colon, ensure it's not just a stray number?
-            // "at 5" is safe. "5pm" is safe. "5" alone is risky?
-            // Existing logic allowed "5" -> 05:00. 
-            // Let's keep existing logic but apply it on text WITHOUT the date.
-
-            if (ampm === 'pm' && h < 12) h += 12;
-            if (ampm === 'am' && h === 12) h = 0;
-
-            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-                targetTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-            }
-        }
-
-        const year = targetDate.getFullYear();
-        const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-        const day = String(targetDate.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-        const todayStr = formatDateKey(new Date());
-
-        return {
-            // Only return date if it changed from "today" (or if user explicitly typed a date that happened to be today? Logic implies diff check)
-            date: dateStr !== todayStr ? dateStr : undefined,
-            time: targetTime
-        };
-    };
 
     // --- Helpers ---
-    const format12h = (timeStr: string) => {
-        const [h, m] = timeStr.split(':').map(Number);
-        const ampm = h >= 12 ? 'pm' : 'am';
-        const displayH = h % 12 || 12;
-        const displayM = m === 0 ? '' : `:${m.toString().padStart(2, '0')}`;
-        return `${displayH}${displayM}${ampm}`;
-    };
+    // format12h imported from utils
 
     const getDaysInWeek = (date: Date) => {
         const d = new Date(date);
@@ -354,9 +272,12 @@ export default function TimelineView({
         }
     };
 
+    // Local parser is removed in favor of imported one
+
     const saveNewTask = (slotKey: string) => {
         if (newTaskTitle.trim()) {
-            onAddTask(newTaskTitle.trim(), newTaskType, formatDateKey(currentDate), slotKey);
+            const parsed = parseNaturalDateTime(newTaskTitle);
+            onAddTask(newTaskTitle.trim(), newTaskType, formatDateKey(currentDate), slotKey, parsed.duration);
         }
         setCreatingSlot(null); setNewTaskTitle(''); setNewTaskType('ADULT');
     };
@@ -561,14 +482,16 @@ export default function TimelineView({
                                     {/* Natural Language Preview */}
                                     {newTaskTitle.trim() && (() => {
                                         const parsed = parseNaturalDateTime(newTaskTitle);
-                                        if (parsed.date || parsed.time) {
+                                        if (parsed.date || parsed.time || parsed.duration) {
                                             return (
                                                 <div className="mb-3 text-xs text-indigo-300/80 flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2">
                                                     <Sparkles className="w-3 h-3" />
                                                     <span>
-                                                        Detected: {parsed.date && `${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
-                                                        {parsed.date && parsed.time && ' @ '}
-                                                        {parsed.time && format12h(parsed.time)}
+                                                        Detected:
+                                                        {parsed.date && ` ${new Date(parsed.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+                                                        {parsed.date && parsed.time && ' @'}
+                                                        {parsed.time && ` ${format12h(parsed.time)}`}
+                                                        {parsed.duration && ` (${parsed.duration} mins)`}
                                                     </span>
                                                 </div>
                                             );

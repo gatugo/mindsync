@@ -16,7 +16,7 @@ const getPreferencesFromEnv = (key: string, defaults: string[]): string[] => {
 export interface StoreState {
     // Tasks
     tasks: Task[];
-    addTask: (title: string, type: TaskType, date?: string, time?: string) => void;
+    addTask: (title: string, type: TaskType, date?: string, time?: string, duration?: number) => void;
     moveTask: (taskId: string, newStatus: TaskStatus) => void;
     deleteTask: (taskId: string) => void;
     updateTask: (taskId: string, updates: Partial<Pick<Task, 'title' | 'scheduledTime' | 'duration'>>) => void;
@@ -106,7 +106,7 @@ export const useStore = create<StoreState>((set, get) => ({
     },
 
     // Task actions
-    addTask: (title: string, type: TaskType, date?: string, time?: string) => {
+    addTask: (title: string, type: TaskType, date?: string, time?: string, duration?: number) => {
         const initialStatus: TaskStatus = 'TODO';
         const newTask: Task = {
             id: generateId(),
@@ -115,6 +115,7 @@ export const useStore = create<StoreState>((set, get) => ({
             status: initialStatus,
             scheduledDate: date || new Date().toISOString().split('T')[0],
             scheduledTime: time,
+            duration,
             createdAt: new Date().toISOString(),
         };
 
