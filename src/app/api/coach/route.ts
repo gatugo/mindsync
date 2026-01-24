@@ -36,7 +36,9 @@ const CoachRequestSchema = z.object({
     history: z.array(z.any()).optional(),
     goals: z.array(z.any()).optional(),
     preferences: z.any().optional(),
-    conversationHistory: z.array(z.any()).optional()
+    conversationHistory: z.array(z.any()).optional(),
+    localDate: z.string().optional(),
+    localTime: z.string().optional()
 });
 
 type CoachRequest = z.infer<typeof CoachRequestSchema>;
@@ -155,7 +157,7 @@ function calculateFreeSlots(tasks: CoachRequest['tasks']): string {
 }
 
 function buildPrompt(request: CoachRequest): string {
-    const { mode, tasks, score, balance, question, history, goals, preferences, taskTitle, conversationHistory } = request;
+    const { mode, tasks, score, balance, question, history, goals, preferences, taskTitle, conversationHistory, localDate, localTime } = request;
 
     const availableSlots = calculateFreeSlots(tasks);
 
@@ -164,12 +166,13 @@ function buildPrompt(request: CoachRequest): string {
 - Interests: ${preferences.interests?.join(', ') || 'None'}
 - Passions: ${preferences.passions?.join(', ') || 'None'}` : '';
 
+    // Use Client's Local Time/Date if provided, otherwise fallback to server time
     const now = new Date();
-    const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    const currentDateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const currentTimeStr = localTime || `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const currentDateStr = localDate || now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     const commonContext = `Current Context:
-- Date: ${currentDateStr}
+- Date: ${currentDateStr} (Local)
 - Time: ${currentTimeStr} (Local)
 - Current Status:
     - Ego Score: ${score || 50}/100
@@ -202,21 +205,25 @@ Answer helpfully as the "Ego" coach using specific MindSync insights.
 
 // ACTION BLOCK FORMAT:
 // When the user explicitly asks to schedule a task, generate an ACTION block like this:
-// [ACTION: CREATE_TASK | Task Title | Task Type (ADULT/CHILD/REST) | Duration in minutes | ScheduledTime (HH:MM) or 'any']
+// [ACTION: CREATE_TASK | Task Title | Task Type (ADULT/CHILD/REST) | Duration in minutes | ScheduledDate (YYYY-MM-DD) | ScheduledTime (HH:MM)]
 // Examples:
-// - \`[ACTION: CREATE_TASK | Read a Book | REST | 30 | any]\`
-// - \`[ACTION: CREATE_TASK | Pay Bills | ADULT | 15 | 09:00]\`
-// - \`[ACTION: CREATE_TASK | Play Guitar | CHILD | 45 | 18:00]\`
+// - \`[ACTION: CREATE_TASK | Read a Book | REST | 30 | 2026-01-24 | 20:00]\`
+// - \`[ACTION: CREATE_TASK | Pay Bills | ADULT | 15 | 2026-01-25 | 09:00]\`
+// - \`[ACTION: CREATE_TASK | Play Guitar | CHILD | 45 | 2026-01-24 | 18:00]\`
 
-// Use this sparingly - only when suggesting a clear, specific activity.
+// CONFLICT DETECTION:
+// 1. Check "Available Free Slots Today" before suggesting a specific time.
+// 2. If the user asks for a time that is already booked (not in available slots), warn them politely and suggest an alternative.
+// 3. For "tomorrow" or future dates, just assume standard availability but use the correct Calculated Date based on "Current Context -> Date".
 
-// IMPORTANT TIME FORMATTING:
+// IMPORTANT DATE/TIME FORMATTING:
 // 1. In your conversational text, ALWAYS use 12-hour format (e.g., "5pm", "10:30am").
-// 2. In the [ACTION] block, you MUST use 24-hour format for the ScheduledTime (e.g., "17:00", "10:30") so the system can read it.
+// 2. In the [ACTION] block, you MUST use 24-hour format for ScheduledTime (e.g., "17:00") and YYYY-MM-DD for ScheduledDate.
+// 3. Use the "Current Context -> Date" to calculate future dates correctly (e.g. if today is Jan 23, tomorrow is Jan 24).
 
 // OTHER INSTRUCTIONS:
-// 1. If suggesting a task, explicitly mention which Available Slot it fits into.
-// 2. If the user EXPLICITLY asks to schedule a task (e.g., "Add gym at 5pm"), ALWAYS generate the "[ACTION: ...]" block for it immediately. Do not just say "I'll do that", actually output the block.`;
+// 1. If suggesting a task, explicitly mention which Date and Time you are scheduling it for.
+// 2. Explore the user's history (if provided) to give context-aware advice (e.g. "You've been heavy on Adult tasks lately...").`;
         }
 
         case 'summary': {

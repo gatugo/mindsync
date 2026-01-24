@@ -20,7 +20,8 @@ interface SuggestedAction {
     title: string;
     taskType: TaskType;
     duration: number;
-    scheduledTime?: string;
+    scheduledDate?: string; // YYYY-MM-DD
+    scheduledTime?: string; // HH:MM (24h or 12h)
 }
 
 interface Message {
@@ -226,19 +227,20 @@ export default function AICoachScreen({
 
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
-        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?) \| (.*?) \| (.*?) \| (.*?)\]/g;
+        // Updated Regex to capture Date: [ACTION: CREATE_TASK | Title | Type | Duration | Date | Time]
+        // Matches: [ACTION: CREATE_TASK | Gym | ADULT | 60 | 2026-01-26 | 17:00]
+        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?) \| (.*?) \| (.*?) \| (.*?) \| (.*?)\]/g;
 
-        const cleanText = text.replace(actionRegex, (match, title, type, duration, time) => {
+        const cleanText = text.replace(actionRegex, (match, title, type, duration, date, time) => {
             const normalizedTime = normalizeTime(time);
             actions.push({
                 type: 'CREATE_TASK',
                 title: title.trim(),
                 taskType: type.trim() as TaskType,
                 duration: parseInt(duration.trim()) || 30,
+                scheduledDate: date.trim() === 'any' ? undefined : date.trim(),
                 scheduledTime: normalizedTime,
             });
-            // Return empty string to hide the block, OR we could replace it with a small icon/indicator? 
-            // For now, hiding it is cleaner as the buttons appear.
             return '';
         });
 
@@ -247,23 +249,23 @@ export default function AICoachScreen({
 
     const handleExecuteAction = (action: SuggestedAction, messageId: string) => {
         if (action.type === 'CREATE_TASK') {
-            // Use local date for "today" to avoid timezone shifts (e.g. UTC date vs Local date)
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            const localDateKey = `${year}-${month}-${day}`;
+            // Use the AI-suggested date, or fallback to today (local)
+            let targetDate = action.scheduledDate;
+
+            if (!targetDate) {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                targetDate = `${year}-${month}-${day}`;
+            }
 
             addTask(
                 action.title,
                 action.taskType,
-                localDateKey, // Schedule for today (Local time)
+                targetDate,
                 action.scheduledTime
             );
-
-            // Optional: Mark action as done visually or remove it? 
-            // For now, let's just show a toast or rely on the UI update naturally.
-            // A simple temporary "Done" state on the button would be nice but let's keep it simple first.
         }
     };
 
@@ -292,11 +294,18 @@ export default function AICoachScreen({
         setError('');
 
         try {
+            // Capture Local Time context
+            const now = new Date();
+            const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const localTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
             const res = await fetch('/api/coach', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     mode: activeMode,
+                    localDate, // Sending local context
+                    localTime,
                     tasks: tasks.map((t) => ({
                         type: t.type,
                         status: t.status,
@@ -511,6 +520,12 @@ export default function AICoachScreen({
                                                     </div>
                                                     <div className={`text-xs ${colors.text} mt-0.5 flex items-center gap-2 flex-wrap`}>
                                                         <span className="uppercase font-medium">{action.taskType}</span>
+                                                        {action.scheduledDate && (
+                                                            <>
+                                                                <span className="text-white/30">•</span>
+                                                                <span>{new Date(action.scheduledDate + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                                                            </>
+                                                        )}
                                                         {action.scheduledTime && (
                                                             <>
                                                                 <span className="text-white/30">•</span>

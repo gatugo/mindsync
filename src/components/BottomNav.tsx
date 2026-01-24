@@ -9,8 +9,8 @@ interface BottomNavProps {
 
 export default function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/5 pb-safe z-50 transition-all duration-300">
-            <div className="flex items-center justify-around h-16 max-w-md mx-auto">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-[#0f172a]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/5 pt-2 pb-[calc(env(safe-area-inset-bottom)+8px)] z-50 transition-all duration-300">
+            <div className="flex items-center justify-around h-14 max-w-md mx-auto">
                 <button
                     onClick={() => onTabChange('today')}
                     className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${currentTab === 'today' ? 'text-indigo-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
