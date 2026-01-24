@@ -252,27 +252,28 @@ Based on patterns and upcoming goals, suggest tomorrow's ideal distribution of A
 
         case 'schedule_assist': {
             const title = taskTitle || 'Untitled Task';
-            const today = new Date().toISOString().split('T')[0];
-            const now = new Date();
-            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
             return `You are a scheduling assistant. Given the task title below, analyze it and return ONLY a JSON object (no markdown, no explanation) with your suggestions.
 
 Task Title: "${title}"
 
 Current Context:
-- Date: ${today}
-- Time: ${currentTime}
+- Date: ${currentDateStr} (Local)
+- Time: ${currentTimeStr} (Local)
 - Available Slots: ${availableSlots}
 
 Instructions:
-**CRITICAL**: If the user uses relative time like "in 30 mins" or "in 1 hour", calculate the 'suggestedTime' based on the Current Time (${currentTime}).
-1. Infer the task type: ADULT (work, productivity, responsibilities), CHILD (fun, hobbies, play), or REST (relaxation, self-care).
-2. Use today's date (shown above) for the suggestedDate field.
-3. Suggest a time: Pick an available slot or the CALCULATED relative time. Use HH:MM format (24-hour).
+1. **Analyze Title**: Extract the Task Type (ADULT/CHILD/REST), Date, and Time.
+2. **Date Handling**: 
+   - If a date is mentioned (e.g., "Jan 22", "tomorrow", "next Friday"), return that specific date in YYYY-MM-DD format.
+   - If NO date is mentioned, use the Current Logic Date: "${currentDateStr}".
+3. **Time Handling**:
+   - If a time is mentioned ("at 5pm", "in 1 hour"), use it (convert "in X" relative to Current Time: ${currentTimeStr}).
+   - If NO time is mentioned, suggest an *Available Slot* from the list above.
+4. **Conflict Check**: If the user asks for a time that is NOT in the "Available Slots" list, you can still suggest it, but prioritize available slots if vague.
 
 Respond with ONLY this JSON format (no other text):
-{"suggestedType": "ADULT", "suggestedDate": "${today}", "suggestedTime": "14:00"}`;
+{"suggestedType": "ADULT", "suggestedDate": "YYYY-MM-DD", "suggestedTime": "HH:MM"}`;
         }
 
         default:

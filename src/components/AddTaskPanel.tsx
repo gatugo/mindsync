@@ -85,13 +85,26 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
         setAIError(null);
 
         try {
+            // Capture Local Time context
+            const now = new Date();
+            const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const localTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
             const response = await fetch('/api/coach', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     mode: 'schedule_assist',
                     taskTitle: title.trim(),
-                    tasks: [], // Minimal context for speed
+                    localDate,
+                    localTime,
+                    // Send tasks for conflict detection (simplified to save bandwidth/tokens)
+                    tasks: tasks.map(t => ({
+                        scheduledDate: t.scheduledDate,
+                        scheduledTime: t.scheduledTime,
+                        duration: t.duration,
+                        status: t.status
+                    })),
                 }),
             });
 

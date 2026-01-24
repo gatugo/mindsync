@@ -227,20 +227,39 @@ export default function AICoachScreen({
 
     const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
         const actions: SuggestedAction[] = [];
-        // Updated Regex to capture Date: [ACTION: CREATE_TASK | Title | Type | Duration | Date | Time]
-        // Matches: [ACTION: CREATE_TASK | Gym | ADULT | 60 | 2026-01-26 | 17:00]
-        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?) \| (.*?) \| (.*?) \| (.*?) \| (.*?)\]/g;
+        // Capture everything inside the brackets to parse manually
+        const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/g;
 
-        const cleanText = text.replace(actionRegex, (match, title, type, duration, date, time) => {
-            const normalizedTime = normalizeTime(time);
-            actions.push({
-                type: 'CREATE_TASK',
-                title: title.trim(),
-                taskType: type.trim() as TaskType,
-                duration: parseInt(duration.trim()) || 30,
-                scheduledDate: date.trim() === 'any' ? undefined : date.trim(),
-                scheduledTime: normalizedTime,
-            });
+        const cleanText = text.replace(actionRegex, (match, content) => {
+            const parts = content.split('|').map((p: string) => p.trim());
+
+            // Format 1: [Title | Type | Duration | Time] (Legacy) - 4 parts
+            // Format 2: [Title | Type | Duration | Date | Time] (New) - 5 parts
+
+            if (parts.length >= 4) {
+                const title = parts[0];
+                const type = parts[1] as TaskType;
+                const duration = parseInt(parts[2]) || 30;
+                let date: string | undefined;
+                let time: string | undefined;
+
+                if (parts.length === 5) {
+                    date = parts[3];
+                    time = parts[4];
+                } else {
+                    // Legacy: parts[3] is time
+                    time = parts[3];
+                }
+
+                actions.push({
+                    type: 'CREATE_TASK',
+                    title,
+                    taskType: type,
+                    duration,
+                    scheduledDate: date === 'any' ? undefined : date,
+                    scheduledTime: normalizeTime(time || ''),
+                });
+            }
             return '';
         });
 
@@ -520,22 +539,24 @@ export default function AICoachScreen({
                                                     </div>
                                                     <div className={`text-xs ${colors.text} mt-0.5 flex items-center gap-2 flex-wrap`}>
                                                         <span className="uppercase font-medium">{action.taskType}</span>
-                                                        {action.scheduledDate && (
-                                                            <>
-                                                                <span className="text-white/30">•</span>
-                                                                <span>{new Date(action.scheduledDate + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                                                            </>
-                                                        )}
-                                                        {action.scheduledTime && (
-                                                            <>
-                                                                <span className="text-white/30">•</span>
-                                                                <span>{format12hPreserve(action.scheduledTime)}</span>
-                                                            </>
-                                                        )}
                                                         {action.duration && (
                                                             <>
                                                                 <span className="text-white/30">•</span>
                                                                 <span>{action.duration}min</span>
+                                                            </>
+                                                        )}
+                                                        {action.scheduledDate && (
+                                                            <>
+                                                                <span className="text-white/30">•</span>
+                                                                <span className="font-medium text-white/90">
+                                                                    {new Date(action.scheduledDate + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                        {action.scheduledTime && (
+                                                            <>
+                                                                <span className="text-white/30">@</span>
+                                                                <span className="font-medium text-white/90">{format12hPreserve(action.scheduledTime)}</span>
                                                             </>
                                                         )}
                                                     </div>
