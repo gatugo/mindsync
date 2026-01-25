@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
+import TimePicker from './TimePicker';
 
 interface SettingsTabProps {
     showGoals: boolean;
@@ -187,22 +188,16 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2 bg-slate-50 dark:bg-black/10 p-3 rounded-2xl border border-slate-200 dark:border-white/5">
                                     <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest ml-1">Sleep At</span>
-                                    <input
-                                        type="time"
+                                    <TimePicker
                                         value={tempPrefs.sleepStartTime || '23:00'}
-                                        onChange={(e) => setTempPrefs(p => ({ ...p, sleepStartTime: e.target.value }))}
-                                        className="w-full bg-white dark:bg-slate-800 border-none rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500/30 transition-all font-bold appearance-none"
-                                        style={{ colorScheme: 'dark' }}
+                                        onChange={(val) => setTempPrefs(p => ({ ...p, sleepStartTime: val }))}
                                     />
                                 </div>
                                 <div className="space-y-2 bg-slate-50 dark:bg-black/10 p-3 rounded-2xl border border-slate-200 dark:border-white/5">
                                     <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest ml-1">Wake Up</span>
-                                    <input
-                                        type="time"
+                                    <TimePicker
                                         value={tempPrefs.sleepEndTime || '07:00'}
-                                        onChange={(e) => setTempPrefs(p => ({ ...p, sleepEndTime: e.target.value }))}
-                                        className="w-full bg-white dark:bg-slate-800 border-none rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500/30 transition-all font-bold appearance-none"
-                                        style={{ colorScheme: 'dark' }}
+                                        onChange={(val) => setTempPrefs(p => ({ ...p, sleepEndTime: val }))}
                                     />
                                 </div>
                             </div>
@@ -221,7 +216,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                                     {(tempPrefs[key] || []).map((tag, i) => (
                                         <div
                                             key={i}
-                                            className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm border border-slate-200 dark:border-white/10 group hover:border-red-500/40 transition-all"
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm border border-slate-200 dark:border-white/10 group hover:border-indigo-500/40 transition-all"
                                         >
                                             {tag}
                                             <button
@@ -284,6 +279,9 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                     <p className="text-sm font-black tracking-[0.3em] uppercase dark:text-white">MindSync</p>
                 </div>
                 <p className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-400">Sync. Focus. Flow.</p>
+                <div className="mt-4 text-[8px] font-bold text-slate-500/50 uppercase tracking-widest">
+                    MindSync &copy; 2026
+                </div>
             </div>
 
             {/* Data Management Modal (Glass Focus) */}
