@@ -206,7 +206,7 @@ export default function Home() {
         </header>
       )}
 
-      <main className={`mx-auto flex flex-col overflow-hidden transition-all duration-300 ${activeTab === 'coach' ? 'max-w-4xl h-[calc(100dvh-56px)] p-0' : 'max-w-md h-[calc(100dvh-140px)] p-4 space-y-4'}`}>
+      <main className={`mx-auto flex flex-col overflow-hidden transition-all duration-300 ${activeTab === 'coach' ? 'max-w-4xl h-[calc(100dvh-64px)] p-0' : 'max-w-md h-[calc(100dvh-140px)] p-4 space-y-4'}`}>
         {/* Main Content Area */}
         <div className="flex-1 overflow-hidden relative">
           {activeTab === 'today' && (
