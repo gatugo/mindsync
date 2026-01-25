@@ -31,6 +31,7 @@ export default function Home() {
   const isHydrated = useHydration();
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [creatingTaskSlot, setCreatingTaskSlot] = useState<{ date: string; time: string } | null>(null);
   const [showGoals, setShowGoals] = useState(false);
   const [activeTab, setActiveTab] = useState<'today' | 'stats' | 'coach' | 'settings'>('today');
   const [activeCoachMode, setActiveCoachMode] = useState<'advice' | 'chat' | 'summary' | 'predict'>('advice');
@@ -229,6 +230,7 @@ export default function Home() {
                   onUpdateTask={updateTask}
                   onAddTask={addTask}
                   onEditTask={setEditingTask}
+                  onRequestCreateTask={(date, time) => setCreatingTaskSlot({ date, time })}
                 />
               </div>
             </div>
@@ -293,6 +295,20 @@ export default function Home() {
         task={editingTask}
         onSave={updateTask}
         onDelete={deleteTask}
+      />
+
+      <EditTaskModal
+        isOpen={!!creatingTaskSlot}
+        onClose={() => setCreatingTaskSlot(null)}
+        task={null}
+        initialDate={creatingTaskSlot?.date}
+        initialTime={creatingTaskSlot?.time}
+        onSave={() => {}} // Not used in create mode
+        onCreate={(title, type, date, time, duration) => {
+          handleAddNewTask(title, type, date, time, duration);
+          setCreatingTaskSlot(null);
+        }}
+        onDelete={() => {}} // Not used in create mode
       />
     </div>
   );

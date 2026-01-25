@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { Task, TaskType, TaskStatus } from '@/types';
-import { X, Clock, Calendar, Type, Trash2, Save } from 'lucide-react';
+import { X, Clock, Calendar, Type, Trash2, Save, PlusCircle, Sparkles, Loader2 } from 'lucide-react';
 import TimePicker from '@/components/TimePicker';
 import DatePicker from '@/components/DatePicker';
+import { parseNaturalDateTime } from '@/lib/datePatterns';
 
 interface EditTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
     task: Task | null;
+    initialDate?: string;
+    initialTime?: string;
     onSave: (taskId: string, updates: Partial<Task>) => void;
+    onCreate?: (title: string, type: TaskType, date: string, time: string, duration: number) => void;
     onDelete: (taskId: string) => void;
 }
 
@@ -28,38 +32,105 @@ const durations = [
     { label: '2h', value: 120 },
 ];
 
-export default function EditTaskModal({ isOpen, onClose, task, onSave, onDelete }: EditTaskModalProps) {
+export default function EditTaskModal({ isOpen, onClose, task, initialDate, initialTime, onSave, onCreate, onDelete }: EditTaskModalProps) {
     const [title, setTitle] = useState('');
     const [type, setType] = useState<TaskType>('ADULT');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [duration, setDuration] = useState(30);
+    const [isAILoading, setIsAILoading] = useState(false);
+
+    const isEditing = !!task;
 
     useEffect(() => {
-        if (task) {
-            setTitle(task.title);
-            setType(task.type);
-            setDate(task.scheduledDate || '');
-            setTime(task.scheduledTime || '');
-            setDuration(task.duration || 30);
+        if (isOpen) {
+            if (task) {
+                // Edit Mode
+                setTitle(task.title);
+                setType(task.type);
+                setDate(task.scheduledDate || '');
+                setTime(task.scheduledTime || '');
+                setDuration(task.duration || 30);
+            } else {
+                // Create Mode - only reset if not already populated by AI or smart fill
+                // This check allows smart fill to persist if re-rendering happens
+                if (!title) {
+                    setTitle('');
+                    setType('ADULT');
+                    setDate(initialDate || '');
+                    setTime(initialTime || '');
+                    setDuration(30);
+                }
+            }
         }
-    }, [task]);
+    }, [isOpen, task, initialDate, initialTime]);
 
-    if (!isOpen || !task) return null;
+    const handleSmartFill = async () => {
+        if (!title.trim()) return;
+
+        setIsAILoading(true);
+        try {
+            // Use client's local date/time for context
+            const now = new Date();
+            const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const localTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            const res = await fetch('/api/coach', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mode: 'schedule_assist',
+                    taskTitle: title,
+                    localDate,
+                    localTime
+                })
+            });
+
+            const data = await res.json();
+            if (data.success && data.response) {
+                const suggestion = JSON.parse(data.response);
+                
+                // Update fields
+                if (suggestion.suggestedType) setType(suggestion.suggestedType as TaskType);
+                if (suggestion.suggestedDate) setDate(suggestion.suggestedDate);
+                if (suggestion.suggestedTime) setTime(suggestion.suggestedTime);
+                // Smart Duration or default
+                if (suggestion.duration) setDuration(suggestion.duration);
+                 
+                // Clean title (optional, currently keeping it as user typed)
+            }
+        } catch (error) {
+            console.error('Smart Fill failed', error);
+        } finally {
+            setIsAILoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
 
     const handleSave = () => {
-        onSave(task.id, {
-            title,
-            type,
-            scheduledDate: date || undefined,
-            scheduledTime: time || undefined,
-            duration
-        });
+        if (isEditing && task) {
+            onSave(task.id, {
+                title,
+                type,
+                scheduledDate: date || undefined,
+                scheduledTime: time || undefined,
+                duration
+            });
+        } else if (onCreate) {
+            onCreate(
+                title,
+                type,
+                date,
+                time,
+                duration
+            );
+        }
         onClose();
     };
 
     const handleDelete = () => {
-        if (confirm('Are you sure you want to delete this task?')) {
+        if (task && confirm('Are you sure you want to delete this task?')) {
             onDelete(task.id);
             onClose();
         }
@@ -71,7 +142,7 @@ export default function EditTaskModal({ isOpen, onClose, task, onSave, onDelete 
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-white/5 bg-slate-800/50">
-                    <h2 className="text-white font-bold text-lg">Edit Task</h2>
+                    <h2 className="text-white font-bold text-lg">{isEditing ? 'Edit Task' : 'New Task'}</h2>
                     <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-white/50 hover:text-white transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -79,16 +150,52 @@ export default function EditTaskModal({ isOpen, onClose, task, onSave, onDelete 
 
                 {/* Body */}
                 <div className="p-6 space-y-6">
-                    {/* Title */}
+                    {/* Title with Smart AI Button */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-white/40 uppercase tracking-wider">Task Name</label>
-                        <input
-                            type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-                            placeholder="Task title..."
-                        />
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-white/40 uppercase tracking-wider">Task Name</label>
+                            {/* AI Helper Hint */}
+                             {!isEditing && title.trim().length > 3 && (
+                                <button 
+                                    onClick={handleSmartFill}
+                                    disabled={isAILoading}
+                                    className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors animate-in fade-in"
+                                >
+                                    {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                    Auto-Fill
+                                </button>
+                             )}
+                        </div>
+                        <div className="relative group">
+                            <input
+                                type="text"
+                                value={title}
+                                autoFocus={!isEditing}
+                                onChange={(e) => setTitle(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        // If empty/just specific keywords, maybe trigger smart fill? 
+                                        // For now simpler: Enter submits if valid, or nothing.
+                                        if (title.trim()) handleSave();
+                                    }
+                                }}
+                                className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-all"
+                                placeholder="What needs to be done? (e.g. 'Gym for 1h')"
+                            />
+                            {/* In-Input Sparkle Button */}
+                            <button
+                                onClick={handleSmartFill}
+                                disabled={isAILoading || !title.trim()}
+                                className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
+                                    title.trim() 
+                                    ? 'text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300' 
+                                    : 'text-white/10 cursor-not-allowed'
+                                }`}
+                                title="AI Smart Fill"
+                            >
+                                {isAILoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Type */}
@@ -169,13 +276,17 @@ export default function EditTaskModal({ isOpen, onClose, task, onSave, onDelete 
 
                 {/* Footer */}
                 <div className="p-4 border-t border-white/10 bg-slate-800/50 flex justify-between items-center">
-                    <button
-                        onClick={handleDelete}
-                        className="flex items-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-colors text-sm font-medium"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                    </button>
+                    {isEditing ? (
+                        <button
+                            onClick={handleDelete}
+                            className="flex items-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-colors text-sm font-medium"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                        </button>
+                    ) : (
+                        <div /> // Spacer for flex
+                    )}
                     <div className="flex gap-2">
                         <button
                             onClick={onClose}
@@ -188,8 +299,8 @@ export default function EditTaskModal({ isOpen, onClose, task, onSave, onDelete 
                             disabled={!title.trim()}
                             className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
                         >
-                            <Save className="w-4 h-4" />
-                            Save Changes
+                            {isEditing ? <Save className="w-4 h-4" /> : <PlusCircle className="w-4 h-4" />}
+                            {isEditing ? 'Save Changes' : 'Create Task'}
                         </button>
                     </div>
                 </div>

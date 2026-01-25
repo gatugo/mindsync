@@ -456,17 +456,23 @@ Current Context:
 - Available Slots: ${availableSlots}
 
 Instructions:
-1. **Analyze Title**: Extract the Task Type (ADULT/CHILD/REST), Date, and Time.
+1. **Analyze Title**: Extract the Task Type (ADULT/CHILD/REST), Date, Time, and Duration.
 2. **Date Handling**: 
    - If a date is mentioned (e.g., "Jan 22", "tomorrow", "next Friday"), return that specific date in YYYY-MM-DD format.
    - If NO date is mentioned, use the Current Logic Date: "${currentDateKey}".
 3. **Time Handling**:
    - If a time is mentioned ("at 5pm", "in 1 hour"), use it (convert "in X" relative to Current Time: ${currentTimeStr}).
    - If NO time is mentioned, suggest an *Available Slot* from the list above.
-4. **Conflict Check**: If the user asks for a time that is NOT in the "Available Slots" list, you can still suggest it, but prioritize available slots if vague.
+4. **Duration Handling (Smart Inference)**:
+   - If explicitly stated (e.g., "for 1 hour", "20 mins"), use that value in minutes.
+   - If unspecified, INFER based on context:
+     - "Gym", "Workout", "Deep Work" -> 60 minutes
+     - "Call", "Meeting", "Lunch" -> 30 minutes
+     - "Quick check", "Review" -> 15 minutes
+     - Default if unknown -> 30 minutes.
 
 Respond with ONLY this JSON format (no other text):
-{"suggestedType": "ADULT", "suggestedDate": "YYYY-MM-DD", "suggestedTime": "HH:MM"}`;
+{"suggestedType": "ADULT", "suggestedDate": "YYYY-MM-DD", "suggestedTime": "HH:MM", "duration": 30}`;
         }
 
         default:
