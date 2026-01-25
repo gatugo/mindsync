@@ -197,6 +197,20 @@ export default function AICoachScreen({
         return { cleanText, actions, thought };
     };
 
+    const handleExecuteAction = (action: SuggestedAction, messageId: string) => {
+        if (action.type === 'CREATE_TASK') {
+            const now = new Date();
+            const localDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            addTask(
+                action.title,
+                action.taskType,
+                action.scheduledDate || localDateKey,
+                action.scheduledTime,
+                action.duration
+            );
+        }
+    };
+
     const handleAskCoach = async (selectedMode?: CoachMode) => {
         // ... (existing setup code stays same, just updated the parsing call below)
         const activeMode = selectedMode || mode;
@@ -317,23 +331,23 @@ export default function AICoachScreen({
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-6">
+            <div className="flex-1 p-4 overflow-y-auto space-y-6 custom-scrollbar scroll-smooth">
                 {messages.length === 0 && !isLoading && !error && (
-                    <div className="h-full flex flex-col items-center justify-center text-center px-8 opacity-40">
+                    <div className="h-full flex flex-col items-center justify-center text-center px-8 opacity-40 animate-in fade-in zoom-in-95 duration-500">
                         <Sparkles className="w-12 h-12 mb-4 text-indigo-400" />
                         <p className="text-sm font-medium">Ready to optimize your day.<br />Select a mode or ask anything.</p>
                     </div>
                 )}
 
                 {messages.map((msg) => (
-                    <div key={msg.id} className="space-y-4">
+                    <div key={msg.id} className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
                         <div className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 shadow-lg ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-purple-600'}`}>
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 shadow-lg border border-white/10 ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-gradient-to-br from-purple-600 to-indigo-600'}`}>
                                 {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                             </div>
-                            <div className={`relative max-w-[85%] rounded-2xl p-4 shadow-xl ${msg.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-slate-800 border border-white/10 text-white/95'}`}>
+                            <div className={`relative max-w-[85%] rounded-2xl p-4 shadow-xl backdrop-blur-md border ${msg.role === 'user' ? 'bg-indigo-500/20 border-indigo-500/30 text-white' : 'bg-slate-800/60 border-white/10 text-white/95'}`}>
                                 <div className="text-sm leading-relaxed">{renderMarkdown(msg.content)}</div>
-                                <button onClick={() => deleteMessage(msg.id)} className={`absolute -top-2 p-1 rounded-full bg-slate-700 text-white/40 hover:text-red-400 transition-all ${msg.role === 'user' ? '-left-2' : '-right-2'}`} title="Delete"><X className="w-3 h-3" /></button>
+                                <button onClick={() => deleteMessage(msg.id)} className={`absolute -top-2 p-1 rounded-full bg-slate-800 border border-white/10 text-white/40 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100 ${msg.role === 'user' ? '-left-2' : '-right-2'}`} title="Delete"><X className="w-3 h-3" /></button>
                             </div>
                         </div>
 
@@ -342,14 +356,14 @@ export default function AICoachScreen({
                                 {msg.actions.map((action, idx) => {
                                     const colors = action.taskType === 'CHILD' ? { bg: 'bg-pink-500/10', border: 'border-pink-500/30', text: 'text-pink-400', emoji: '🩷' } : { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', emoji: '🔵' };
                                     return (
-                                        <div key={idx} className={`${colors.bg} ${colors.border} border rounded-2xl p-4 shadow-lg overflow-hidden`}>
+                                        <div key={idx} className={`${colors.bg} ${colors.border} border rounded-2xl p-4 shadow-lg overflow-hidden backdrop-blur-sm hover:translate-y-[-2px] transition-all duration-300`}>
                                             <div className="flex items-start justify-between gap-4 mb-4">
                                                 <div className="flex-1">
                                                     <h4 className="font-bold text-sm flex items-center gap-2">
                                                         <span>{colors.emoji}</span>
                                                         <span>{action.title}</span>
                                                         {action.projectedScore && (
-                                                            <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${action.projectedScore > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                            <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${action.projectedScore > 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/20 text-red-400 border border-red-500/20'}`}>
                                                                 {action.projectedScore > 0 ? '+' : ''}{action.projectedScore} Score
                                                             </span>
                                                         )}
@@ -358,10 +372,22 @@ export default function AICoachScreen({
                                                         <span>{action.taskType}</span>
                                                         <span>•</span>
                                                         <span>{action.duration} min</span>
-                                                        {action.scheduledTime && (
+                                                        {(action.scheduledTime || action.scheduledDate) && (
                                                             <>
                                                                 <span>•</span>
-                                                                <span className="text-white">{format12h(action.scheduledTime)}</span>
+                                                                <span className="text-white">
+                                                                    {action.scheduledDate && (() => {
+                                                                        const d = new Date(action.scheduledDate + 'T12:00:00');
+                                                                        const now = new Date();
+                                                                        const isToday = d.toDateString() === now.toDateString();
+                                                                        const isTomorrow = new Date(now.setDate(now.getDate() + 1)).toDateString() === d.toDateString();
+                                                                        
+                                                                        if (isToday) return 'Today ';
+                                                                        if (isTomorrow) return 'Tom ';
+                                                                        return `${d.getMonth() + 1}/${d.getDate()} `;
+                                                                    })()}
+                                                                    {action.scheduledTime && format12h(action.scheduledTime)}
+                                                                </span>
                                                             </>
                                                         )}
                                                     </div>
@@ -375,9 +401,9 @@ export default function AICoachScreen({
                                                         const btn = e.currentTarget;
                                                         btn.disabled = true;
                                                         btn.innerHTML = '<span>Added to Timeline</span>';
-                                                        btn.className = "flex-1 bg-emerald-500/20 text-emerald-400 py-2.5 rounded-xl text-xs font-bold border border-emerald-500/20";
+                                                        btn.className = "flex-1 bg-emerald-500/20 text-emerald-400 py-2.5 rounded-xl text-xs font-bold border border-emerald-500/20 cursor-default";
                                                     }}
-                                                    className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 border border-indigo-400/20 active:scale-95"
+                                                    className="flex-1 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 border border-white/10 active:scale-95"
                                                 >
                                                     <PlusCircle className="w-4 h-4" />
                                                     Add to Timeline
@@ -399,14 +425,15 @@ export default function AICoachScreen({
                 ))}
 
                 {isLoading && (
-                    <div className="flex items-center gap-3 ml-11">
-                        <div className="bg-slate-800 rounded-2xl p-4 border border-white/5 shadow-xl">
+                    <div className="flex items-center gap-3 ml-11 animate-in fade-in duration-300">
+                        <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-white/5 shadow-xl">
                             <div className="flex gap-1.5">
-                                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" />
-                                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.1s]" />
-                                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-[bounce_1s_infinite]" />
+                                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-[bounce_1s_infinite_0.2s]" />
+                                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-[bounce_1s_infinite_0.4s]" />
                             </div>
                         </div>
+                        <span className="text-xs text-white/30 font-medium animate-pulse">Thinking...</span>
                     </div>
                 )}
                 <div ref={messagesEndRef} className="h-4" />
