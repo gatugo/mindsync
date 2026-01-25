@@ -62,7 +62,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
     };
 
     return (
-        <div className="h-full p-4 space-y-6 relative overflow-y-auto pb-20">
+        <div className="h-full p-4 space-y-6 relative overflow-y-auto pb-32">
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">Settings</h2>
 
             {/* Account Panel */}
@@ -148,7 +148,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                     </div>
                 </button>
 
-                <div className={`transition-all duration-300 ease-in-out ${isPersonalizationOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`transition-all duration-300 ease-in-out ${isPersonalizationOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                     <div className="p-5 pt-0 border-t border-slate-200 dark:border-white/5 space-y-6">
 
                         {/* Guest Warning */}
