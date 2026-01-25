@@ -290,7 +290,7 @@ export default function AICoachScreen({
     return (
         <div className="h-full flex flex-col bg-slate-900 overflow-hidden text-white">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
                         <Bot className="w-6 h-6 text-white" />
@@ -339,7 +339,7 @@ export default function AICoachScreen({
             </div>
 
             {/* Messages */}
-            <div className="flex-1 px-3 py-2 overflow-y-auto space-y-4 custom-scrollbar scroll-smooth">
+            <div className="flex-1 px-2 py-1 overflow-y-auto space-y-4 custom-scrollbar scroll-smooth">
                 {messages.length === 0 && !isLoading && !error && (
                     <div className="h-full flex flex-col items-center justify-center text-center px-8 opacity-40 animate-in fade-in zoom-in-95 duration-500">
                         <Sparkles className="w-12 h-12 mb-4 text-indigo-400" />
@@ -448,7 +448,7 @@ export default function AICoachScreen({
             </div>
 
             {/* Input Wrapper */}
-            <div className="px-2 py-2 border-t border-white/10 bg-slate-900/80 backdrop-blur-xl">
+            <div className="px-2 py-1 border-t border-white/10 bg-slate-900/80 backdrop-blur-xl">
                 <div className="flex gap-2 items-center max-w-3xl mx-auto">
                     <div className="flex-1 relative group">
                         <div className="absolute inset-0 bg-indigo-500/5 rounded-2xl blur transition-opacity opacity-0 group-focus-within:opacity-100" />
