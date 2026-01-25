@@ -20,6 +20,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
     const { preferences, updatePreferences, resetStore } = useStore();
 
     const [tempPrefs, setTempPrefs] = useState(preferences);
+    const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
 
     useEffect(() => {
         const getUser = async () => {
@@ -106,89 +107,130 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
             </div>
 
             {/* Brain Balance Preferences */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest px-1">Brain Personalization</h3>
-                    {(tempPrefs !== preferences) && (
-                        <button
-                            onClick={handleSavePrefs}
-                            className="text-xs font-bold text-indigo-500 hover:text-indigo-400 px-2 py-1 rounded-lg bg-indigo-500/10 animate-pulse transition-all"
-                        >
-                            Save Changes
-                        </button>
-                    )}
-                </div>
-
-                <div className="bg-slate-100 dark:bg-slate-800 p-5 rounded-3xl space-y-6">
-                    {/* Sleep Schedule */}
-                    <div className="space-y-3">
-                        <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                            <span className="material-icons-round text-indigo-400 text-lg">bedtime</span>
-                            Sleep Schedule
-                        </label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Sleep At</span>
-                                <input
-                                    type="time"
-                                    value={tempPrefs.sleepStartTime || '23:00'}
-                                    onChange={(e) => setTempPrefs(p => ({ ...p, sleepStartTime: e.target.value }))}
-                                    className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Wake Up</span>
-                                <input
-                                    type="time"
-                                    value={tempPrefs.sleepEndTime || '07:00'}
-                                    onChange={(e) => setTempPrefs(p => ({ ...p, sleepEndTime: e.target.value }))}
-                                    className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                />
-                            </div>
+            <div className={`bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden transition-all duration-300 border border-transparent ${isPersonalizationOpen ? 'dark:border-indigo-500/20 shadow-lg shadow-indigo-500/5' : ''}`}>
+                <button
+                    onClick={() => setIsPersonalizationOpen(!isPersonalizationOpen)}
+                    className="w-full flex items-center justify-between p-4 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isPersonalizationOpen ? 'bg-indigo-500 text-white' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                            <span className="material-icons-round text-xl">psychology</span>
                         </div>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight px-1">
-                            The AI Coach will respect these hours when suggesting tasks.
-                        </p>
+                        <div className="text-left">
+                            <h3 className="font-semibold text-slate-900 dark:text-white">Brain Personalization</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Customize your AI Coach</p>
+                        </div>
                     </div>
 
-                    {/* Hobbies / Interests / Passions */}
-                    {(['hobbies', 'interests', 'passions'] as const).map((key) => (
-                        <div key={key} className="space-y-3">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 capitalize">
-                                <span className="material-icons-round text-slate-400 text-lg">
-                                    {key === 'hobbies' ? 'sports_esports' : key === 'interests' ? 'auto_awesome' : 'favorite'}
+                    <div className="flex items-center gap-3">
+                        {/* Save Indicator */}
+                        {(tempPrefs !== preferences) && (
+                            <span
+                                onClick={(e) => { e.stopPropagation(); handleSavePrefs(); }}
+                                className="text-xs font-bold bg-indigo-500 text-white px-3 py-1.5 rounded-full shadow-lg shadow-indigo-500/30 animate-pulse hover:bg-indigo-600 transition-colors cursor-pointer mr-1"
+                            >
+                                Save Changes
+                            </span>
+                        )}
+
+                        {!user && (
+                            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-md">
+                                <span className="material-icons-round text-amber-500 text-[10px]">cloud_off</span>
+                                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wide">
+                                    Local Only
                                 </span>
-                                {key}
+                            </div>
+                        )}
+
+                        <span className={`material-icons-round text-slate-400 transition-transform duration-300 ${isPersonalizationOpen ? 'rotate-180' : ''}`}>
+                            expand_more
+                        </span>
+                    </div>
+                </button>
+
+                <div className={`transition-all duration-300 ease-in-out ${isPersonalizationOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="p-5 pt-0 border-t border-slate-200 dark:border-white/5 space-y-6">
+
+                        {/* Guest Warning */}
+                        {!user && (
+                            <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex gap-3 items-start">
+                                <span className="material-icons-round text-amber-500 text-lg mt-0.5">info</span>
+                                <div>
+                                    <p className="text-xs font-semibold text-amber-200">Guest Mode Active</p>
+                                    <p className="text-[10px] text-amber-200/70 leading-relaxed">
+                                        Your personalization settings are saved to this browser only. <Link href="/login" className="underline hover:text-white">Log in</Link> to sync them across devices.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Sleep Schedule */}
+                        <div className="space-y-3 mt-4">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                                <span className="material-icons-round text-indigo-400 text-lg">bedtime</span>
+                                Sleep Schedule
                             </label>
-                            <div className="flex flex-wrap gap-2">
-                                {(tempPrefs[key] || []).map((tag, i) => (
-                                    <span
-                                        key={i}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-white/5 group"
-                                    >
-                                        {tag}
-                                        <button
-                                            onClick={() => handleRemoveTag(key, i)}
-                                            className="hover:text-red-500 transition-colors"
-                                        >
-                                            <span className="material-icons-round text-sm">close</span>
-                                        </button>
-                                    </span>
-                                ))}
-                                <input
-                                    type="text"
-                                    placeholder={`Add ${key.slice(0, -1)}...`}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handleAddTag(key, (e.target as HTMLInputElement).value);
-                                            (e.target as HTMLInputElement).value = '';
-                                        }
-                                    }}
-                                    className="bg-transparent border-b border-dashed border-slate-300 dark:border-slate-600 px-1 py-1 text-xs text-slate-700 dark:text-white focus:outline-none focus:border-indigo-500 w-24"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Sleep At</span>
+                                    <input
+                                        type="time"
+                                        value={tempPrefs.sleepStartTime || '23:00'}
+                                        onChange={(e) => setTempPrefs(p => ({ ...p, sleepStartTime: e.target.value }))}
+                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Wake Up</span>
+                                    <input
+                                        type="time"
+                                        value={tempPrefs.sleepEndTime || '07:00'}
+                                        onChange={(e) => setTempPrefs(p => ({ ...p, sleepEndTime: e.target.value }))}
+                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    ))}
+
+                        {/* Hobbies / Interests / Passions */}
+                        {(['hobbies', 'interests', 'passions'] as const).map((key) => (
+                            <div key={key} className="space-y-3">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 capitalize">
+                                    <span className="material-icons-round text-slate-400 text-lg">
+                                        {key === 'hobbies' ? 'sports_esports' : key === 'interests' ? 'auto_awesome' : 'favorite'}
+                                    </span>
+                                    {key}
+                                </label>
+                                <div className="flex flex-wrap gap-2 bg-slate-200/50 dark:bg-black/20 p-3 rounded-xl border border-slate-200 dark:border-white/5">
+                                    {(tempPrefs[key] || []).map((tag, i) => (
+                                        <span
+                                            key={i}
+                                            className="flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-200 shadow-sm border border-slate-200 dark:border-white/5 group transition-all hover:border-red-500/30"
+                                        >
+                                            {tag}
+                                            <button
+                                                onClick={() => handleRemoveTag(key, i)}
+                                                className="text-slate-400 hover:text-red-500 transition-colors"
+                                            >
+                                                <span className="material-icons-round text-[14px]">close</span>
+                                            </button>
+                                        </span>
+                                    ))}
+                                    <input
+                                        type="text"
+                                        placeholder={`+ Add ${key.slice(0, -1)}`}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleAddTag(key, (e.target as HTMLInputElement).value);
+                                                (e.target as HTMLInputElement).value = '';
+                                            }
+                                        }}
+                                        className="bg-transparent px-2 py-1 text-xs text-slate-700 dark:text-white focus:outline-none placeholder:text-slate-400 min-w-[100px]"
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 

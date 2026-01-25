@@ -70,7 +70,8 @@ export const useStore = create<StoreState>((set, get) => ({
     preferences: {
         hobbies: getPreferencesFromEnv('NEXT_PUBLIC_USER_HOBBIES', ['Reading', 'Hiking', 'Gaming']),
         interests: getPreferencesFromEnv('NEXT_PUBLIC_USER_INTERESTS', ['Technology', 'Art', 'Music']),
-        passions: getPreferencesFromEnv('NEXT_PUBLIC_USER_PASSIONS', ['Learning', 'Creativity'])
+        passions: getPreferencesFromEnv('NEXT_PUBLIC_USER_PASSIONS', ['Learning', 'Creativity']),
+        work: getPreferencesFromEnv('NEXT_PUBLIC_USER_WORK', ['Software Dev', 'Management'])
     },
 
     fetchInitialData: async () => {
@@ -87,6 +88,7 @@ export const useStore = create<StoreState>((set, get) => ({
                 if (profile.hobbies?.length) newPrefs.hobbies = profile.hobbies;
                 if (profile.interests?.length) newPrefs.interests = profile.interests;
                 if (profile.passions?.length) newPrefs.passions = profile.passions;
+                if (profile.work?.length) newPrefs.work = profile.work;
                 if (profile.sleep_start_time) newPrefs.sleepStartTime = profile.sleep_start_time;
                 if (profile.sleep_end_time) newPrefs.sleepEndTime = profile.sleep_end_time;
             }
@@ -267,6 +269,7 @@ export const useStore = create<StoreState>((set, get) => ({
             hobbies: newPrefs.hobbies,
             interests: newPrefs.interests,
             passions: newPrefs.passions,
+            work: newPrefs.work,
             sleep_start_time: newPrefs.sleepStartTime,
             sleep_end_time: newPrefs.sleepEndTime
         });

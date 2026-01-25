@@ -5,6 +5,7 @@ export interface UserPreferences {
     hobbies: string[];
     interests: string[];
     passions: string[];
+    work: string[];
     sleepStartTime?: string; // HH:MM
     sleepEndTime?: string; // HH:MM
 }
