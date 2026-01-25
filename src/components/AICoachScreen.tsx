@@ -380,11 +380,11 @@ export default function AICoachScreen({
                                                                         const d = new Date(action.scheduledDate + 'T12:00:00');
                                                                         const now = new Date();
                                                                         const isToday = d.toDateString() === now.toDateString();
-                                                                        const isTomorrow = new Date(now.setDate(now.getDate() + 1)).toDateString() === d.toDateString();
                                                                         
                                                                         if (isToday) return 'Today ';
-                                                                        if (isTomorrow) return 'Tom ';
-                                                                        return `${d.getMonth() + 1}/${d.getDate()} `;
+                                                                        
+                                                                        // Return "Jan 26" format
+                                                                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ';
                                                                     })()}
                                                                     {action.scheduledTime && format12h(action.scheduledTime)}
                                                                 </span>
