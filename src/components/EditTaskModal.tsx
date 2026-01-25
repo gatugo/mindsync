@@ -137,8 +137,17 @@ export default function EditTaskModal({ isOpen, onClose, task, initialDate, init
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-            <div className="bg-slate-900 border border-white/10 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+            {/* Modal Panel */}
+            <div 
+                className="bg-slate-900 border-t sm:border border-white/10 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 sm:duration-200 pb-safe sm:pb-0" 
+                onClick={e => e.stopPropagation()}
+            >
+                
+                {/* Mobile Drag Handle */}
+                <div className="w-full flex justify-center pt-3 pb-1 sm:hidden bg-slate-800/50" onClick={onClose}>
+                   <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+                </div>
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-white/5 bg-slate-800/50">
@@ -174,8 +183,6 @@ export default function EditTaskModal({ isOpen, onClose, task, initialDate, init
                                 onChange={(e) => setTitle(e.target.value)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
-                                        // If empty/just specific keywords, maybe trigger smart fill? 
-                                        // For now simpler: Enter submits if valid, or nothing.
                                         if (title.trim()) handleSave();
                                     }
                                 }}
