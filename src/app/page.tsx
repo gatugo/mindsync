@@ -153,51 +153,51 @@ export default function Home() {
           <div className="max-w-[1600px] mx-auto flex items-center justify-between">
             <div
               onClick={() => setActiveTab('today')}
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-80 transition-opacity"
             >
-              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                <span className="material-icons-round text-xl sm:text-2xl">psychology</span>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                <span className="material-icons-round text-lg sm:text-2xl">psychology</span>
               </div>
               <div className="flex flex-col">
-                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">MindSync</h1>
-                <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">Sync. Focus. Flow.</p>
+                <h1 className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">MindSync</h1>
+                <p className="text-[8px] sm:text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none hidden md:block">Sync. Focus. Flow.</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+            <div className="flex items-center gap-1.5 sm:gap-3 md:gap-4 lg:gap-6">
               {/* Score Badge */}
-              <div className="flex items-center gap-2 sm:gap-3 bg-[#1e293b] py-1.5 px-3 sm:py-2 sm:px-4 rounded-full border border-slate-700/50 score-glow relative overflow-hidden group">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-[#1e293b] py-1 px-2 sm:py-1.5 sm:px-3 rounded-full border border-slate-700/50 score-glow relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="text-xl sm:text-2xl drop-shadow-sm filter grayscale-[0.2] group-hover:grayscale-0 transition-all transform group-hover:scale-110 duration-200" role="img" aria-label="mood">{getBalanceEmoji()}</span>
+                <span className="text-lg sm:text-xldrop-shadow-sm filter grayscale-[0.2] group-hover:grayscale-0 transition-all transform group-hover:scale-110 duration-200" role="img" aria-label="mood">{getBalanceEmoji()}</span>
                 <div className="flex flex-col leading-none">
-                  <span className="text-base sm:text-lg font-bold text-white tracking-tight">{score}</span>
-                  <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest hidden xs:block">Score</span>
+                  <span className="text-sm sm:text-base lg:text-lg font-bold text-white tracking-tight">{score}</span>
+                  <span className="text-[7px] sm:text-[8px] font-bold text-slate-400 uppercase tracking-widest hidden lg:block">Score</span>
                 </div>
               </div>
 
               {/* Goals Toggle (Moved to Header) */}
               <button
                 onClick={() => setShowGoals(!showGoals)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-full font-medium transition-all border ${showGoals
+                className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-full font-medium transition-all border ${showGoals
                   ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 border-transparent'
                   }`}
                 title={showGoals ? "Hide Goals" : "Show Goals"}
               >
-                <span className={`material-icons-round text-xl ${showGoals ? 'text-amber-500' : 'text-slate-400'}`}>flag</span>
-                <span className="hidden sm:inline text-sm">{showGoals ? 'Hide' : 'Goals'}</span>
+                <span className={`material-icons-round text-lg sm:text-xl ${showGoals ? 'text-amber-500' : 'text-slate-400'}`}>flag</span>
+                <span className="hidden lg:inline text-xs sm:text-sm">{showGoals ? 'Hide' : 'Goals'}</span>
               </button>
 
               {/* New Task Button */}
               <button
                 onClick={() => setIsAddTaskOpen(!isAddTaskOpen)}
-                className={`flex items-center gap-2 p-2.5 sm:px-5 sm:py-2.5 rounded-full font-semibold transition-all shadow-lg active:scale-95 border border-white/10 ${isAddTaskOpen
+                className={`flex items-center gap-1.5 p-2 sm:px-4 sm:py-2 rounded-full font-semibold transition-all shadow-lg active:scale-95 border border-white/10 ${isAddTaskOpen
                   ? 'bg-slate-800 text-slate-300'
                   : 'bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] text-white hover:brightness-110 shadow-indigo-500/40'
                   }`}
               >
-                <span className={`material-icons-round text-xl transition-transform ${isAddTaskOpen ? 'rotate-45' : ''}`}>add</span>
-                <span className="hidden sm:inline whitespace-nowrap font-bold tracking-wide">New Task</span>
+                <span className={`material-icons-round text-lg sm:text-xl transition-transform ${isAddTaskOpen ? 'rotate-45' : ''}`}>add</span>
+                <span className="hidden sm:inline whitespace-nowrap text-xs sm:text-sm font-bold tracking-wide">New Task</span>
               </button>
 
 
