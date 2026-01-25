@@ -62,161 +62,175 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
     };
 
     return (
-        <div className="h-full p-4 space-y-6 relative overflow-y-auto pb-32">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Settings</h2>
+        <div className="h-full p-4 sm:p-6 space-y-6 relative overflow-y-auto pb-32 custom-scrollbar">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Settings</h2>
+                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/5">
+                    v1.2.0
+                </div>
+            </div>
 
-            {/* Account Panel */}
-            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* Account Panel (Premium Hub Look) */}
+            <div className="bg-white/50 dark:bg-slate-900/40 backdrop-blur-2xl p-6 rounded-2xl relative overflow-hidden group border border-slate-200/50 dark:border-white/5 shadow-xl shadow-indigo-500/5">
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-30" />
 
                 {user ? (
-                    <div className="space-y-4 relative">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                    <div className="space-y-6 relative">
+                        <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-500/10 transition-transform group-hover:scale-105 duration-300">
                                 {user.email?.[0].toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-slate-900 dark:text-white">Logged In</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Active Member</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 truncate font-medium">{user.email}</p>
+                                <div className="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-md">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Synced</span>
+                                </div>
                             </div>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="w-full py-2 bg-slate-200 dark:bg-slate-700 hover:bg-red-500 hover:text-white text-slate-700 dark:text-slate-300 rounded-xl transition-all font-medium text-sm"
+                            className="w-full py-3 bg-slate-100 dark:bg-slate-800 hover:bg-red-500/10 hover:text-red-500 text-slate-600 dark:text-slate-400 rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-slate-200 dark:border-white/5"
                         >
-                            Log Out
+                            Log Out Session
                         </button>
                     </div>
                 ) : (
-                    <div className="text-center space-y-4 relative py-2">
-                        <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto flex items-center justify-center">
-                            <span className="material-icons-round text-slate-400 text-2xl">person_outline</span>
+                    <div className="text-center space-y-5 relative py-2">
+                        <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 rounded-3xl mx-auto flex items-center justify-center shadow-inner relative group-hover:rotate-3 transition-transform duration-500">
+                            <span className="material-icons-round text-slate-400 dark:text-slate-600 text-5xl">person_outline</span>
+                            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-amber-500 rounded-xl border-4 border-white dark:border-[#0f172a] flex items-center justify-center text-white">
+                                <span className="material-icons-round text-sm">key</span>
+                            </div>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Guest Mode</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in to securely sync & backup data</p>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Guest Profile</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-[200px] mx-auto leading-relaxed font-medium">Connect an account to enable multi-device sync and cloud backups.</p>
                         </div>
                         <Link
                             href="/login"
-                            className="block w-full py-2.5 bg-[#5c67ff] hover:bg-indigo-600 text-white rounded-xl transition-colors font-semibold shadow-lg shadow-indigo-500/20"
+                            className="inline-block w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:brightness-110 text-white rounded-xl transition-all font-bold text-sm shadow-xl shadow-indigo-500/30 active:scale-[0.98]"
                         >
-                            Log In / Sign Up
+                            Sign In / Get Started
                         </Link>
                     </div>
                 )}
             </div>
 
-            {/* Brain Balance Preferences */}
-            <div className={`bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden transition-all duration-300 border border-transparent ${isPersonalizationOpen ? 'dark:border-indigo-500/20 shadow-lg shadow-indigo-500/5' : ''}`}>
+            {/* Brain Personalization (Glass Accordion) */}
+            <div className={`bg-white/50 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl overflow-hidden transition-all duration-500 border border-slate-200/50 dark:border-white/5 ${isPersonalizationOpen ? 'shadow-2xl shadow-indigo-500/10' : ''}`}>
                 <button
                     onClick={() => setIsPersonalizationOpen(!isPersonalizationOpen)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors"
+                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
                 >
-                    <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isPersonalizationOpen ? 'bg-indigo-500 text-white' : 'bg-indigo-500/10 text-indigo-500'}`}>
-                            <span className="material-icons-round text-xl">psychology</span>
+                    <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-lg ${isPersonalizationOpen ? 'bg-indigo-500 text-white shadow-indigo-500/40 rotate-[360deg]' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                            <span className="material-icons-round text-2xl">psychology</span>
                         </div>
                         <div className="text-left">
-                            <h3 className="font-semibold text-slate-900 dark:text-white">Brain Personalization</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Customize your AI Coach</p>
+                            <h3 className="font-bold text-slate-900 dark:text-white tracking-tight">Brain Personalization</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Fine-tune your AI Coach behavior</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         {/* Save Indicator */}
                         {(tempPrefs !== preferences) && (
-                            <span
+                            <div
                                 onClick={(e) => { e.stopPropagation(); handleSavePrefs(); }}
-                                className="text-xs font-bold bg-indigo-500 text-white px-3 py-1.5 rounded-full shadow-lg shadow-indigo-500/30 animate-pulse hover:bg-indigo-600 transition-colors cursor-pointer mr-1"
+                                className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded-xl shadow-lg shadow-indigo-500/30 animate-pulse hover:bg-indigo-600 transition-all cursor-pointer mr-1 active:scale-95"
                             >
-                                Save Changes
-                            </span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Save</span>
+                            </div>
                         )}
 
                         {!user && (
-                            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-md">
-                                <span className="material-icons-round text-amber-500 text-[10px]">cloud_off</span>
-                                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wide">
-                                    Local Only
+                            <div className="hidden xs:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                <span className="material-icons-round text-amber-500 text-xs">cloud_off</span>
+                                <span className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">
+                                    Local
                                 </span>
                             </div>
                         )}
 
-                        <span className={`material-icons-round text-slate-400 transition-transform duration-300 ${isPersonalizationOpen ? 'rotate-180' : ''}`}>
+                        <span className={`material-icons-round text-slate-400 transition-transform duration-500 ${isPersonalizationOpen ? 'rotate-180' : ''}`}>
                             expand_more
                         </span>
                     </div>
                 </button>
 
-                <div className={`transition-all duration-300 ease-in-out ${isPersonalizationOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="p-5 pt-0 border-t border-slate-200 dark:border-white/5 space-y-6">
+                <div className={`transition-[max-height,opacity] duration-500 ease-in-out ${isPersonalizationOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="p-6 pt-0 border-t border-slate-200/50 dark:border-white/5 space-y-8">
 
                         {/* Guest Warning */}
                         {!user && (
-                            <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex gap-3 items-start">
-                                <span className="material-icons-round text-amber-500 text-lg mt-0.5">info</span>
+                            <div className="mt-5 p-4 bg-indigo-500/[0.03] dark:bg-amber-500/[0.03] border border-amber-500/20 rounded-2xl flex gap-4 items-center">
+                                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                                    <span className="material-icons-round text-amber-500 text-xl">security</span>
+                                </div>
                                 <div>
-                                    <p className="text-xs font-semibold text-amber-200">Guest Mode Active</p>
-                                    <p className="text-[10px] text-amber-200/70 leading-relaxed">
-                                        Your personalization settings are saved to this browser only. <Link href="/login" className="underline hover:text-white">Log in</Link> to sync them across devices.
+                                    <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Offline Personalization</p>
+                                    <p className="text-[10px] text-slate-500 dark:text-amber-200/50 leading-relaxed font-medium">
+                                        Data is stored in this browser session. <Link href="/login" className="text-amber-500 underline decoration-amber-500/30 underline-offset-4 hover:decoration-amber-500 transition-all font-bold">Sign in</Link> to secure your cloud brain.
                                     </p>
                                 </div>
                             </div>
                         )}
 
                         {/* Sleep Schedule */}
-                        <div className="space-y-3 mt-4">
-                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        <div className="space-y-4">
+                            <label className="flex items-center gap-2 text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
                                 <span className="material-icons-round text-indigo-400 text-lg">bedtime</span>
-                                Sleep Schedule
+                                Optimization Window
                             </label>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Sleep At</span>
+                                <div className="space-y-2 bg-slate-50 dark:bg-black/10 p-3 rounded-2xl border border-slate-200 dark:border-white/5">
+                                    <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest ml-1">Sleep At</span>
                                     <input
                                         type="time"
                                         value={tempPrefs.sleepStartTime || '23:00'}
                                         onChange={(e) => setTempPrefs(p => ({ ...p, sleepStartTime: e.target.value }))}
-                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono appearance-none"
+                                        className="w-full bg-white dark:bg-slate-800 border-none rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500/30 transition-all font-bold appearance-none"
                                         style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Wake Up</span>
+                                <div className="space-y-2 bg-slate-50 dark:bg-black/10 p-3 rounded-2xl border border-slate-200 dark:border-white/5">
+                                    <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest ml-1">Wake Up</span>
                                     <input
                                         type="time"
                                         value={tempPrefs.sleepEndTime || '07:00'}
                                         onChange={(e) => setTempPrefs(p => ({ ...p, sleepEndTime: e.target.value }))}
-                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono appearance-none"
+                                        className="w-full bg-white dark:bg-slate-800 border-none rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:ring-2 focus:ring-indigo-500/30 transition-all font-bold appearance-none"
                                         style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Hobbies / Interests / Passions / Work */}
+                        {/* Tags Sections */}
                         {(['work', 'hobbies', 'interests', 'passions'] as const).map((key) => (
-                            <div key={key} className="space-y-3">
-                                <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 capitalize">
-                                    <span className="material-icons-round text-slate-400 text-lg">
+                            <div key={key} className="space-y-4">
+                                <label className="flex items-center gap-2 text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                                    <span className={`material-icons-round text-lg ${key === 'passions' ? 'text-rose-500' : key === 'work' ? 'text-blue-500' : key === 'hobbies' ? 'text-indigo-500' : 'text-amber-500'}`}>
                                         {key === 'hobbies' ? 'sports_esports' : key === 'interests' ? 'auto_awesome' : key === 'passions' ? 'favorite' : 'work'}
                                     </span>
-                                    {key === 'work' ? 'Work / Skills' : key}
+                                    {key === 'work' ? 'Work & Skills' : key}
                                 </label>
-                                <div className="flex flex-wrap gap-2 bg-slate-200/50 dark:bg-black/20 p-3 rounded-xl border border-slate-200 dark:border-white/5">
+                                <div className="flex flex-wrap gap-2 bg-slate-50/50 dark:bg-black/20 p-4 rounded-2xl border border-slate-200 dark:border-white/5">
                                     {(tempPrefs[key] || []).map((tag, i) => (
-                                        <span
+                                        <div
                                             key={i}
-                                            className="flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-200 shadow-sm border border-slate-200 dark:border-white/5 group transition-all hover:border-red-500/30"
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm border border-slate-200 dark:border-white/10 group hover:border-red-500/40 transition-all"
                                         >
                                             {tag}
                                             <button
                                                 onClick={() => handleRemoveTag(key, i)}
                                                 className="text-slate-400 hover:text-red-500 transition-colors"
                                             >
-                                                <span className="material-icons-round text-[14px]">close</span>
+                                                <span className="material-icons-round text-[16px]">cancel</span>
                                             </button>
-                                        </span>
+                                        </div>
                                     ))}
                                     <input
                                         type="text"
@@ -227,7 +241,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                                                 (e.target as HTMLInputElement).value = '';
                                             }
                                         }}
-                                        className="bg-transparent px-2 py-1 text-xs text-slate-700 dark:text-white focus:outline-none placeholder:text-slate-400 min-w-[100px]"
+                                        className="bg-transparent px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600 min-w-[120px] font-bold"
                                     />
                                 </div>
                             </div>
@@ -236,91 +250,107 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                 </div>
             </div>
 
-
-
-            {/* Data Management (Protected) */}
-            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
+            {/* Data Management (Glass Action Card) */}
+            <div className="bg-white/50 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-slate-200/50 dark:border-white/5 overflow-hidden group hover:shadow-xl hover:shadow-indigo-500/5 transition-all">
                 <button
                     onClick={() => setShowDataModal(true)}
-                    className="flex items-center justify-between w-full group"
+                    className="flex items-center justify-between w-full p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                 >
-                    <div className="flex items-center gap-3">
-                        <span className="material-icons-round text-slate-400 group-hover:text-indigo-400 transition-colors">dns</span>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors shadow-inner">
+                            <span className="material-icons-round text-2xl">dns</span>
+                        </div>
                         <div className="text-left">
-                            <span className="font-medium text-slate-700 dark:text-slate-200 block">Data Management</span>
-                            {!user && <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Backup Required</span>}
+                            <h3 className="font-bold text-slate-900 dark:text-white tracking-tight">Data Management</h3>
+                            {!user ? (
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    <span className="text-[9px] text-amber-500 font-black uppercase tracking-widest px-2 py-0.5 bg-amber-500/10 rounded-full border border-amber-500/20">Backup Required</span>
+                                </div>
+                            ) : (
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Export or restore your cloud brain</p>
+                            )}
                         </div>
                     </div>
-                    <span className="material-icons-round text-slate-400">chevron_right</span>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-slate-100 dark:group-hover:bg-white/5 transition-all">
+                        <span className="material-icons-round text-slate-400">chevron_right</span>
+                    </div>
                 </button>
             </div>
 
-            {/* App Info */}
-            <div className="text-center text-sm text-slate-400 pt-4">
-                <p>MindSync</p>
-                <p className="text-xs">Sync. Focus. Flow.</p>
+            {/* App Footer Branding */}
+            <div className="text-center pt-8 opacity-40 hover:opacity-100 transition-opacity duration-700">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="material-icons-round text-xl bg-gradient-to-br from-indigo-500 to-purple-500 text-transparent bg-clip-text">psychology</span>
+                    <p className="text-sm font-black tracking-[0.3em] uppercase dark:text-white">MindSync</p>
+                </div>
+                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-400">Sync. Focus. Flow.</p>
             </div>
 
-            {/* Data Management Modal */}
+            {/* Data Management Modal (Glass Focus) */}
             {showDataModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowDataModal(false)}>
-                    <div className="bg-slate-900 border border-white/10 w-full max-w-sm rounded-2xl shadow-2xl p-6 space-y-6 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="text-center space-y-2">
-                            <div className="w-12 h-12 bg-indigo-500/20 rounded-full mx-auto flex items-center justify-center">
-                                <span className="material-icons-round text-indigo-400 text-2xl">dns</span>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowDataModal(false)}>
+                    <div className="bg-slate-900 border border-white/10 w-full max-w-sm rounded-3xl shadow-2xl p-7 space-y-8 animate-in zoom-in-95 duration-300 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[80px]" />
+
+                        <div className="text-center space-y-3 relative">
+                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-indigo-500/20 rotate-3 group-hover:rotate-0 transition-transform">
+                                <span className="material-icons-round text-white text-3xl">dns</span>
                             </div>
-                            <h3 className="text-xl font-bold text-white">Data Management</h3>
-                            <p className="text-sm text-slate-400">Securely manage your MindSync data</p>
+                            <h3 className="text-2xl font-black text-white tracking-tight">Data Lab</h3>
+                            <p className="text-sm text-slate-400 font-medium px-4">Maintain, back up, or restore your neural data snapshots</p>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-4 relative">
                             <button
                                 onClick={() => { handleExport(); setShowDataModal(false); }}
-                                className="flex items-center justify-between w-full p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 transition-colors group"
+                                className="flex items-center justify-between w-full p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group"
                             >
-                                <div className="flex items-center gap-3">
-                                    <span className="material-icons-round text-cyan-500 bg-cyan-500/10 p-2 rounded-lg">file_upload</span>
-                                    <div className="text-left">
-                                        <div className="font-bold text-white text-sm">Export Report</div>
-                                        <div className="text-xs text-slate-400">Download JSON backup</div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform duration-300">
+                                        <span className="material-icons-round text-2xl">file_upload</span>
+                                    </div>
+                                    <div className="text-left font-bold">
+                                        <div className="text-white text-base">Export Snaps</div>
+                                        <div className="text-[10px] text-slate-500 uppercase tracking-widest">JSON Report</div>
                                     </div>
                                 </div>
-                                <span className="material-icons-round text-slate-500 group-hover:text-white transition-colors">download</span>
+                                <span className="material-icons-round text-white group-hover:translate-y-1 transition-transform">arrow_downward</span>
                             </button>
 
                             <button
                                 onClick={() => { handleImport(); setShowDataModal(false); }}
-                                className="flex items-center justify-between w-full p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 transition-colors group"
+                                className="flex items-center justify-between w-full p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group"
                             >
-                                <div className="flex items-center gap-3">
-                                    <span className="material-icons-round text-emerald-500 bg-emerald-500/10 p-2 rounded-lg">file_download</span>
-                                    <div className="text-left">
-                                        <div className="font-bold text-white text-sm">Import Data</div>
-                                        <div className="text-xs text-slate-400">Restore from backup</div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform duration-300">
+                                        <span className="material-icons-round text-2xl">file_download</span>
+                                    </div>
+                                    <div className="text-left font-bold">
+                                        <div className="text-white text-base">Restore Data</div>
+                                        <div className="text-[10px] text-slate-500 uppercase tracking-widest">Neural Sync</div>
                                     </div>
                                 </div>
-                                <span className="material-icons-round text-slate-500 group-hover:text-white transition-colors">upload</span>
+                                <span className="material-icons-round text-white group-hover:-translate-y-1 transition-transform">arrow_upward</span>
                             </button>
                         </div>
 
-                        <div className="pt-2 border-t border-white/10">
-                            <div className="flex gap-2 items-start p-3 bg-amber-500/10 rounded-lg">
-                                <span className="material-icons-round text-amber-500 text-sm mt-0.5">warning</span>
-                                <p className="text-[10px] text-amber-200/80 leading-snug">
-                                    Importing data will <strong>overwrite</strong> your current tasks. Make sure to export a backup first.
-                                </p>
-                            </div>
+                        <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 flex gap-4 items-center">
+                            <span className="material-icons-round text-amber-500 text-2xl">psychiatry</span>
+                            <p className="text-[11px] font-bold text-amber-200/80 leading-snug">
+                                Neural Sync will <span className="text-amber-400 uppercase tracking-widest">overwrite</span> current state.
+                            </p>
                         </div>
 
                         <button
                             onClick={() => setShowDataModal(false)}
-                            className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium transition-colors"
+                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
                         >
-                            Done
+                            Return to Hub
                         </button>
                     </div>
                 </div>
             )}
         </div>
+
     );
 }
