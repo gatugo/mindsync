@@ -46,7 +46,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
         updatePreferences(tempPrefs);
     };
 
-    const handleAddTag = (key: 'hobbies' | 'interests' | 'passions', value: string) => {
+    const handleAddTag = (key: 'hobbies' | 'interests' | 'passions' | 'work', value: string) => {
         if (!value.trim()) return;
         setTempPrefs(prev => ({
             ...prev,
@@ -54,7 +54,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
         }));
     };
 
-    const handleRemoveTag = (key: 'hobbies' | 'interests' | 'passions', index: number) => {
+    const handleRemoveTag = (key: 'hobbies' | 'interests' | 'passions' | 'work', index: number) => {
         setTempPrefs(prev => ({
             ...prev,
             [key]: prev[key].filter((_, i) => i !== index)
@@ -177,7 +177,8 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                                         type="time"
                                         value={tempPrefs.sleepStartTime || '23:00'}
                                         onChange={(e) => setTempPrefs(p => ({ ...p, sleepStartTime: e.target.value }))}
-                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono"
+                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono appearance-none"
+                                        style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -186,20 +187,21 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                                         type="time"
                                         value={tempPrefs.sleepEndTime || '07:00'}
                                         onChange={(e) => setTempPrefs(p => ({ ...p, sleepEndTime: e.target.value }))}
-                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono"
+                                        className="w-full bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono appearance-none"
+                                        style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Hobbies / Interests / Passions */}
-                        {(['hobbies', 'interests', 'passions'] as const).map((key) => (
+                        {/* Hobbies / Interests / Passions / Work */}
+                        {(['work', 'hobbies', 'interests', 'passions'] as const).map((key) => (
                             <div key={key} className="space-y-3">
                                 <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 capitalize">
                                     <span className="material-icons-round text-slate-400 text-lg">
-                                        {key === 'hobbies' ? 'sports_esports' : key === 'interests' ? 'auto_awesome' : 'favorite'}
+                                        {key === 'hobbies' ? 'sports_esports' : key === 'interests' ? 'auto_awesome' : key === 'passions' ? 'favorite' : 'work'}
                                     </span>
-                                    {key}
+                                    {key === 'work' ? 'Work / Skills' : key}
                                 </label>
                                 <div className="flex flex-wrap gap-2 bg-slate-200/50 dark:bg-black/20 p-3 rounded-xl border border-slate-200 dark:border-white/5">
                                     {(tempPrefs[key] || []).map((tag, i) => (
