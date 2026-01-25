@@ -82,28 +82,33 @@ export default function ProgressChart({ history }: ProgressChartProps) {
     }
 
     return (
-        <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 relative">
-            {/* Close Button */}
-
-
+        <div className="bg-slate-900/40 backdrop-blur-2xl rounded-2xl p-4 sm:p-6 relative border border-white/5 shadow-[0_0_40px_-15px_rgba(99,102,241,0.2)] animate-in fade-in zoom-in-95 duration-500">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4 pr-8">
-                <h3 className="text-lg font-semibold text-white">📊 Progress Overview</h3>
-                <div className="flex gap-2">
+            <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                        <span className="material-icons-round text-white text-lg">insights</span>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white tracking-tight">Daily Balance</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Progress Overview</p>
+                    </div>
+                </div>
+                <div className="flex bg-slate-800/50 p-1 rounded-xl border border-white/5">
                     <button
                         onClick={() => setTimeRange('7days')}
-                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${timeRange === '7days'
-                            ? 'bg-indigo-500 text-white'
-                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                        className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${timeRange === '7days'
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'text-slate-400 hover:text-white'
                             }`}
                     >
                         7 Days
                     </button>
                     <button
                         onClick={() => setTimeRange('30days')}
-                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${timeRange === '30days'
-                            ? 'bg-indigo-500 text-white'
-                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                        className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${timeRange === '30days'
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'text-slate-400 hover:text-white'
                             }`}
                     >
                         30 Days
@@ -111,101 +116,135 @@ export default function ProgressChart({ history }: ProgressChartProps) {
                 </div>
             </div>
 
-            {/* Chart */}
+            {/* Chart Area */}
             {chartData.every((d) => d.adult === 0 && d.child === 0 && d.rest === 0) ? (
-                <div className="h-64 flex items-center justify-center text-white/40">
-                    No data yet. Complete some tasks to see your progress!
+                <div className="h-64 flex flex-col items-center justify-center gap-4 text-slate-500">
+                    <span className="material-icons-round text-4xl opacity-20">bar_chart</span>
+                    <p className="text-sm font-medium">Complete tasks to visualize your data</p>
                 </div>
             ) : (
-                <ResponsiveContainer width="100%" height={280}>
-                    <ComposedChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                        <XAxis
-                            dataKey="displayDate"
-                            stroke="#ffffff60"
-                            fontSize={12}
-                            tickLine={false}
-                        />
-                        <YAxis
-                            yAxisId="left"
-                            stroke="#ffffff60"
-                            fontSize={12}
-                            tickLine={false}
-                            label={{
-                                value: 'Tasks',
-                                angle: -90,
-                                position: 'insideLeft',
-                                fill: '#ffffff60',
-                            }}
-                        />
-                        <YAxis
-                            yAxisId="right"
-                            orientation="right"
-                            stroke="#ffffff60"
-                            fontSize={12}
-                            tickLine={false}
-                            domain={[0, 100]}
-                            label={{
-                                value: 'Score',
-                                angle: 90,
-                                position: 'insideRight',
-                                fill: '#ffffff60',
-                            }}
-                        />
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: '#1e293b',
-                                border: '1px solid #ffffff20',
-                                borderRadius: '8px',
-                            }}
-                            labelStyle={{ color: '#fff' }}
-                        />
-                        <Legend />
+                <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={chartData} margin={{ top: 10, right: -10, left: -20, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorAdult" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9} />
+                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.6} />
+                                </linearGradient>
+                                <linearGradient id="colorChild" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.9} />
+                                    <stop offset="95%" stopColor="#ec4899" stopOpacity={0.6} />
+                                </linearGradient>
+                                <linearGradient id="colorRest" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9} />
+                                    <stop offset="95%" stopColor="#059669" stopOpacity={0.6} />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="2.5" result="blur" />
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                            <XAxis
+                                dataKey="displayDate"
+                                stroke="#ffffff20"
+                                fontSize={10}
+                                fontWeight={700}
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fill: '#64748b' }}
+                                dy={10}
+                            />
+                            <YAxis
+                                yAxisId="left"
+                                stroke="#ffffff20"
+                                fontSize={10}
+                                fontWeight={700}
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{ fill: '#64748b' }}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                stroke="#ffffff20"
+                                fontSize={10}
+                                fontWeight={700}
+                                tickLine={false}
+                                axisLine={false}
+                                domain={[0, 100]}
+                                tick={{ fill: '#f59e0b' }}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: '#0f172a',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '16px',
+                                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)',
+                                    backdropFilter: 'blur(10px)'
+                                }}
+                                itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                            />
+                            <Legend
+                                verticalAlign="top"
+                                align="right"
+                                iconType="circle"
+                                wrapperStyle={{ paddingBottom: '20px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                            />
 
-                        {/* Stacked Bars for Task Counts */}
-                        <Bar
-                            yAxisId="left"
-                            dataKey="adult"
-                            name="🔵 Adult"
-                            stackId="tasks"
-                            fill="#3b82f6"
-                            radius={[0, 0, 0, 0]}
-                        />
-                        <Bar
-                            yAxisId="left"
-                            dataKey="child"
-                            name="🩷 Child"
-                            stackId="tasks"
-                            fill="#ec4899"
-                            radius={[0, 0, 0, 0]}
-                        />
-                        <Bar
-                            yAxisId="left"
-                            dataKey="rest"
-                            name="🟢 Rest"
-                            stackId="tasks"
-                            fill="#22c55e"
-                            radius={[4, 4, 0, 0]}
-                        />
+                            <Bar
+                                yAxisId="left"
+                                dataKey="adult"
+                                name="Adult"
+                                stackId="tasks"
+                                fill="url(#colorAdult)"
+                                radius={[0, 0, 0, 0]}
+                                barSize={20}
+                            />
+                            <Bar
+                                yAxisId="left"
+                                dataKey="child"
+                                name="Child"
+                                stackId="tasks"
+                                fill="url(#colorChild)"
+                                radius={[0, 0, 0, 0]}
+                                barSize={20}
+                            />
+                            <Bar
+                                yAxisId="left"
+                                dataKey="rest"
+                                name="Rest"
+                                stackId="tasks"
+                                fill="url(#colorRest)"
+                                radius={[4, 4, 0, 0]}
+                                barSize={20}
+                            />
 
-                        {/* Line for Score */}
-                        <Line
-                            yAxisId="right"
-                            type="monotone"
-                            dataKey="score"
-                            name="⚖️ Ego Score"
-                            stroke="#f59e0b"
-                            strokeWidth={3}
-                            dot={{ fill: '#f59e0b', strokeWidth: 2 }}
-                        />
-                    </ComposedChart>
-                </ResponsiveContainer>
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="score"
+                                name="Balance Score"
+                                stroke="#f59e0b"
+                                strokeWidth={4}
+                                dot={{ fill: '#f59e0b', r: 4, strokeWidth: 2, stroke: '#0f172a' }}
+                                activeDot={{ r: 6, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }}
+                                animationDuration={1000}
+                                filter="url(#glow)"
+                            />
+                        </ComposedChart>
+                    </ResponsiveContainer>
+                </div>
             )}
 
-            {/* Legend Hint */}
-            <p className="text-xs text-white/40 mt-2 text-center">
-                Higher score = better Adult/Child balance. Save daily snapshots to track progress.
-            </p>
+            {/* Footer Hint */}
+            <div className="mt-4 flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                <span className="material-icons-round text-amber-500 text-sm">auto_awesome</span>
+                <p className="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest">
+                    Higher score indicates optimal Adult/Child harmony
+                </p>
+            </div>
         </div>
     );
 }
