@@ -236,21 +236,7 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                 </div>
             </div>
 
-            {/* Goals Toggle */}
-            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
-                <button
-                    onClick={() => setShowGoals(!showGoals)}
-                    className="flex items-center justify-between w-full"
-                >
-                    <div className="flex items-center gap-3">
-                        <span className="material-icons-round text-amber-500">flag</span>
-                        <span className="font-medium text-slate-700 dark:text-slate-200">Show Goals on Today</span>
-                    </div>
-                    <div className={`w-12 h-7 rounded-full p-1 transition-colors ${showGoals ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                        <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${showGoals ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </div>
-                </button>
-            </div>
+
 
             {/* Data Management (Protected) */}
             {user && (

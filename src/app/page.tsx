@@ -175,6 +175,19 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Goals Toggle (Moved to Header) */}
+              <button
+                onClick={() => setShowGoals(!showGoals)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-full font-medium transition-all border ${showGoals
+                  ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 border-transparent'
+                  }`}
+                title={showGoals ? "Hide Goals" : "Show Goals"}
+              >
+                <span className={`material-icons-round text-xl ${showGoals ? 'text-amber-500' : 'text-slate-400'}`}>flag</span>
+                <span className="hidden sm:inline text-sm">{showGoals ? 'Hide' : 'Goals'}</span>
+              </button>
+
               {/* New Task Button */}
               <button
                 onClick={() => setIsAddTaskOpen(!isAddTaskOpen)}
@@ -202,11 +215,18 @@ export default function Home() {
                 {isHeaderDropdownOpen && (
                   <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden p-2 dropdown-enter">
                     <button
-                      onClick={() => { setShowGoals(!showGoals); setIsHeaderDropdownOpen(false); }}
+                      onClick={handleExport}
                       className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
-                      <span className={`material-icons-round text-lg ${showGoals ? 'text-amber-500' : 'text-amber-400/70'}`}>flag</span>
-                      <span>{showGoals ? 'Hide Goals' : 'Show Goals'}</span>
+                      <span className="material-icons-round text-lg text-cyan-500">file_download</span>
+                      <span>Export Data</span>
+                    </button>
+                    <button
+                      onClick={handleImport}
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      <span className="material-icons-round text-lg text-emerald-500">file_upload</span>
+                      <span>Import Data</span>
                     </button>
                   </div>
                 )}
