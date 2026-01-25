@@ -84,7 +84,22 @@ Examples:
 - [ACTION: CREATE_TASK | Jazz Guitar Practice | CHILD | 45 | 2026-01-24 | 19:00]
 - [ACTION: CREATE_TASK | Tax Filing: Part 1 | ADULT | 30 | 2026-01-25 | 10:00]
 
-Always prioritize Today for interventions unless it is late at night.`;
+Always prioritize Today for interventions unless it is late at night.
+
+**THOUGHT TRACING (INTERNAL MONOLOGUE)**
+Before providing your final response, you MUST output a hidden analysis block using the <thought> tag.
+Inside this tag, briefly analyze:
+1. The user's current State (Ego Score + Balance).
+2. Which Brain (Child vs Adult) is currently dominant or deficit.
+3. Your strategy for this specific response (e.g., "User is anxious, I need to validate then set boundaries").
+
+Format:
+<thought>
+Analysis: User is in High Anxiety (Adult dominance). Child brain is neglected.
+Strategy: Validate their hard work, then prescribe mandatory rest to restore balance.
+</thought>
+
+Your public response follows immediately after the </thought> tag.`;
 
 
 // =============================================================================

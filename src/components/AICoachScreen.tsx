@@ -155,19 +155,30 @@ export default function AICoachScreen({
         return parts.length > 0 ? parts : text;
     };
 
-    const parseActions = (text: string): { cleanText: string; actions: SuggestedAction[] } => {
+    // Unified Parser for Thought and Actions
+    const parseResponse = (text: string): { cleanText: string; actions: SuggestedAction[]; thought?: string } => {
+        let cleanText = text;
+        let thought: string | undefined;
+
+        // 1. Extract Thought
+        const thoughtRegex = /<thought>([\s\S]*?)<\/thought>/;
+        const thoughtMatch = cleanText.match(thoughtRegex);
+        if (thoughtMatch) {
+            thought = thoughtMatch[1].trim();
+            cleanText = cleanText.replace(thoughtRegex, '').trim();
+        }
+
+        // 2. Extract Actions
         const actions: SuggestedAction[] = [];
-        // Extended regex to capture optional projected score: [ACTION: CREATE_TASK | Title | Type | Duration | Date | Time | +5]
         const actionRegex = /\[ACTION: CREATE_TASK \| ([^\]]+)\]/gi;
-        const cleanText = text.replace(actionRegex, (match, content) => {
+        cleanText = cleanText.replace(actionRegex, (match, content) => {
             const parts = content.split('|').map((p: string) => p.trim());
             if (parts.length >= 4) {
-                // Parse projected score if present (last part starting with + or -)
                 let projectedScore: number | undefined;
                 const lastPart = parts[parts.length - 1];
                 if (/^[+-]\d+$/.test(lastPart)) {
                     projectedScore = parseInt(lastPart);
-                    parts.pop(); // Remove score from parts array
+                    parts.pop();
                 }
 
                 actions.push({
@@ -182,24 +193,12 @@ export default function AICoachScreen({
             }
             return '';
         });
-        return { cleanText, actions };
-    };
 
-    const handleExecuteAction = (action: SuggestedAction, messageId: string) => {
-        if (action.type === 'CREATE_TASK') {
-            const now = new Date();
-            const localDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            addTask(
-                action.title,
-                action.taskType,
-                action.scheduledDate || localDateKey,
-                action.scheduledTime,
-                action.duration
-            );
-        }
+        return { cleanText, actions, thought };
     };
 
     const handleAskCoach = async (selectedMode?: CoachMode) => {
+        // ... (existing setup code stays same, just updated the parsing call below)
         const activeMode = selectedMode || mode;
         const currentQuestion = question;
 
@@ -248,11 +247,14 @@ export default function AICoachScreen({
                 if (done) break;
                 const chunk = decoder.decode(value, { stream: true });
                 fullText += chunk;
+                
+                // Real-time update (raw text for now, parsed at end to prevent flickering)
                 setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, content: fullText } : msg));
             }
 
-            const { cleanText, actions } = parseActions(fullText);
-            setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, content: cleanText, actions: actions.length > 0 ? actions : undefined } : msg));
+            // Final Parse
+            const { cleanText, actions, thought } = parseResponse(fullText);
+            setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, content: cleanText, actions: actions.length > 0 ? actions : undefined, thought } : msg));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to connect to AI coach');
         } finally {

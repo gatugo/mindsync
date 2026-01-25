@@ -476,6 +476,43 @@ Respond with ONLY this JSON format (no other text):
 
 export async function POST(request: NextRequest) {
     try {
+        // 0. MOCK AI MODE (Safe Testing)
+        if (process.env.MOCK_AI === 'true') {
+            const body = await request.json();
+            console.log(`[Mock Mode] Handling request for mode: ${body.mode}`);
+            
+            // Simulate network delay
+            await new Promise(r => setTimeout(r, 1000));
+
+            if (body.mode === 'schedule_assist') {
+                return NextResponse.json({
+                    success: true,
+                    response: JSON.stringify({
+                        suggestedType: 'ADULT',
+                        suggestedDate: body.localDate || '2026-01-25',
+                        suggestedTime: '10:00'
+                    })
+                });
+            }
+
+            // Stream Simulation for Chat/Advice/Predict
+            const encoder = new TextEncoder();
+            const mockText = body.mode === 'predict' 
+                ? `[MOCK] Based on your balance, here is a plan:\n\n[ACTION: CREATE_TASK | Deep Work | ADULT | 90 | ${body.localDate || '2026-01-25'} | 09:00 | +8]\n[ACTION: CREATE_TASK | Relax | REST | 30 | ${body.localDate || '2026-01-25'} | 12:00 | +3]`
+                : `[MOCK] This is a simulated response for mode '${body.mode}' to save tokens. Your Balance is ${body.balance || 'unknown'}.`;
+
+            const stream = new ReadableStream({
+                start(controller) {
+                    controller.enqueue(encoder.encode(mockText));
+                    controller.close();
+                }
+            });
+
+            return new NextResponse(stream, {
+                headers: { 'Content-Type': 'text/event-stream' }
+            });
+        }
+
         // 1. Rate Limiting Check
         const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';
         if (isRateLimited(ip)) {
