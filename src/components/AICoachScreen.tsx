@@ -367,34 +367,44 @@ export default function AICoachScreen({
                                         <div key={idx} className={`${colors.bg} ${colors.border} border rounded-2xl p-4 shadow-lg overflow-hidden backdrop-blur-sm hover:translate-y-[-2px] transition-all duration-300`}>
                                             <div className="flex items-start justify-between gap-4 mb-4">
                                                 <div className="flex-1">
-                                                    <h4 className="font-bold text-sm flex items-center gap-2">
-                                                        <span>{colors.emoji}</span>
-                                                        <span>{action.title}</span>
-                                                        {action.projectedScore && (
-                                                            <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${action.projectedScore > 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/20 text-red-400 border border-red-500/20'}`}>
-                                                                {action.projectedScore > 0 ? '+' : ''}{action.projectedScore} Score
-                                                            </span>
-                                                        )}
-                                                    </h4>
-                                                    <div className={`text-[10px] font-bold uppercase tracking-wider ${colors.text} mt-1.5 flex items-center gap-2 opacity-80`}>
-                                                        <span>{action.taskType}</span>
-                                                        <span>•</span>
-                                                        <span>{action.duration} min</span>
+                                                    <h4 className="font-bold text-sm flex items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{colors.emoji}</span>
+                                                            <span>{action.title}</span>
+                                                        </div>
+                                                        
+                                                        {/* Time Capsule Badge */}
                                                         {(action.scheduledTime || action.scheduledDate) && (
-                                                            <>
-                                                                <span>•</span>
-                                                                <span className="text-white">
-                                                                    {action.scheduledDate && (() => {
+                                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/40 border border-white/10 shrink-0">
+                                                                <span className="text-[10px] font-bold text-white/90">
+                                                                    📅 {(() => {
+                                                                        if (!action.scheduledDate) return 'Today';
                                                                         const d = new Date(action.scheduledDate + 'T12:00:00');
                                                                         const now = new Date();
                                                                         const isToday = d.toDateString() === now.toDateString();
-                                                                        
-                                                                        if (isToday) return 'Today ';
-                                                                        
-                                                                        // Return "Jan 26" format
-                                                                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ';
+                                                                        const tomorrow = new Date();
+                                                                        tomorrow.setDate(tomorrow.getDate() + 1);
+                                                                        const isTomorrow = d.toDateString() === tomorrow.toDateString();
+
+                                                                        if (isToday) return 'Today';
+                                                                        if (isTomorrow) return 'Tomorrow';
+                                                                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                                                                     })()}
-                                                                    {action.scheduledTime && format12h(action.scheduledTime)}
+                                                                    {action.scheduledTime ? `, ${format12h(action.scheduledTime)}` : ''}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </h4>
+                                                    
+                                                    <div className={`text-[10px] font-bold uppercase tracking-wider ${colors.text} mt-2 flex items-center gap-2 opacity-80 pl-7`}>
+                                                        <span>{action.taskType}</span>
+                                                        <span>•</span>
+                                                        <span>{action.duration} min</span>
+                                                        {action.projectedScore && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span className={`${action.projectedScore > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                                    {action.projectedScore > 0 ? '+' : ''}{action.projectedScore} Ego Score
                                                                 </span>
                                                             </>
                                                         )}
