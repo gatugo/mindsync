@@ -200,37 +200,7 @@ export default function Home() {
                 <span className="hidden sm:inline whitespace-nowrap font-bold tracking-wide">New Task</span>
               </button>
 
-              {/* More Actions Dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsHeaderDropdownOpen(!isHeaderDropdownOpen)}
-                  className={`p-2.5 rounded-full transition-colors flex items-center justify-center ${isHeaderDropdownOpen
-                    ? 'bg-slate-100 dark:bg-slate-800 text-[#5c67ff]'
-                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                >
-                  <span className="material-icons-round">more_vert</span>
-                </button>
 
-                {isHeaderDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden p-2 dropdown-enter">
-                    <button
-                      onClick={handleExport}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      <span className="material-icons-round text-lg text-cyan-500">file_download</span>
-                      <span>Export Data</span>
-                    </button>
-                    <button
-                      onClick={handleImport}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      <span className="material-icons-round text-lg text-emerald-500">file_upload</span>
-                      <span>Import Data</span>
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </header>

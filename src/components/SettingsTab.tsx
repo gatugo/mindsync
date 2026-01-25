@@ -239,20 +239,21 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
 
 
             {/* Data Management (Protected) */}
-            {user && (
-                <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
-                    <button
-                        onClick={() => setShowDataModal(true)}
-                        className="flex items-center justify-between w-full group"
-                    >
-                        <div className="flex items-center gap-3">
-                            <span className="material-icons-round text-slate-400 group-hover:text-indigo-400 transition-colors">dns</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-200">Data Management</span>
+            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
+                <button
+                    onClick={() => setShowDataModal(true)}
+                    className="flex items-center justify-between w-full group"
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="material-icons-round text-slate-400 group-hover:text-indigo-400 transition-colors">dns</span>
+                        <div className="text-left">
+                            <span className="font-medium text-slate-700 dark:text-slate-200 block">Data Management</span>
+                            {!user && <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Backup Required</span>}
                         </div>
-                        <span className="material-icons-round text-slate-400">chevron_right</span>
-                    </button>
-                </div>
-            )}
+                    </div>
+                    <span className="material-icons-round text-slate-400">chevron_right</span>
+                </button>
+            </div>
 
             {/* App Info */}
             <div className="text-center text-sm text-slate-400 pt-4">
