@@ -70,9 +70,9 @@ export default function AICoachScreen({
     }, [initialMode]);
 
     const handleSuggestAnother = (action: SuggestedAction) => {
-        const prompt = `I'd like another suggestion for "${action.title}". Provide an alternative task of type ${action.taskType} that would fit my schedule for ${action.scheduledDate || 'today'}.`;
-        setQuestion(prompt);
-        handleAskCoach('chat');
+        const prompt = `I'd like 3 distinct alternative suggestions for "${action.title}". Provide 3 different tasks of type ${action.taskType} that would fit my schedule for ${action.scheduledDate || 'today'}. Return them as separate Action Blocks.`;
+        // Directly send the prompt without setting state first to avoid async race conditions
+        handleAskCoach('chat', prompt);
     };
 
     const scrollToBottom = () => {
@@ -211,10 +211,10 @@ export default function AICoachScreen({
         }
     };
 
-    const handleAskCoach = async (selectedMode?: CoachMode) => {
+    const handleAskCoach = async (selectedMode?: CoachMode, overrideQuestion?: string) => {
         // ... (existing setup code stays same, just updated the parsing call below)
         const activeMode = selectedMode || mode;
-        const currentQuestion = question;
+        const currentQuestion = overrideQuestion || question;
 
         if (activeMode === 'chat' && currentQuestion.trim()) {
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: currentQuestion, timestamp: new Date() }]);
