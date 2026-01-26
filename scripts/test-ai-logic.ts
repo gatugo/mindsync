@@ -1,5 +1,5 @@
 
-import { buildPrompt, calculateFreeSlots } from '../src/app/api/coach/route';
+import { buildPrompt, calculateFreeSlots } from '../src/lib/coachLogic';
 
 // --- Mock Data ---
 const mockTasks = [
