@@ -55,9 +55,9 @@ Last Updated: January 20, 2026
 - [x] Streaming AI responses (word-by-word)
 
 ### Phase 5: Smart Fallback Logic (Non-AI)
-- [ ] **Smart Insight Engine**: deterministic advice based on user's daily balance stats.
-- [ ] **Offline Natural Language Parsing**: Enhance regex parser to handle task creation without AI.
-- [ ] **Failover Integration**: Ensure UI seamlessly switches to this logic if AI services are unreachable.
+- [x] **Smart Insight Engine**: deterministic advice based on user's daily balance stats.
+- [x] **Offline Natural Language Parsing**: Enhance regex parser to handle task creation without AI.
+- [x] **Failover Integration**: Ensure UI seamlessly switches to this logic if AI services are unreachable.
 
 ### Phase 6: AI & Data Refinement (Next)
 - [ ] **Chat UI/UX Refinement**: Improve the visual hierarchy and interaction flow of the AI Coach.

@@ -5,6 +5,7 @@ import { X, Send, Bot, Sparkles, TrendingUp, MessageCircle, Trash2, User, PlusCi
 import { useStore } from '@/store/useStore';
 import { Task, DailySnapshot, Goal, TaskType } from '@/types';
 import { parseNaturalDateTime, format12h } from '@/lib/datePatterns';
+import { generateSmartInsight, parseOfflineTask } from '@/lib/smartLogic';
 
 interface AICoachScreenProps {
     tasks: Task[];
@@ -270,11 +271,62 @@ export default function AICoachScreen({
             const { cleanText, actions, thought } = parseResponse(fullText);
             setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, content: cleanText, actions: actions.length > 0 ? actions : undefined, thought } : msg));
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to connect to AI coach');
+            console.warn('AI Unavailable, switching to Offline Mode', err);
+            runOfflineLogic(activeMode, currentQuestion);
         } finally {
             setIsLoading(false);
             setIsTyping(false);
         }
+    };
+
+    const runOfflineLogic = async (activeMode: CoachMode, input: string) => {
+        const aiMsgId = (Date.now() + 1).toString();
+        // Simulate thinking delay
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        setMessages(prev => [...prev, { id: aiMsgId, role: 'assistant', content: '', timestamp: new Date() }]);
+
+        let responseText = '';
+        const actions: SuggestedAction[] = [];
+
+        // 1. Generate Insight based on current balance
+        const scoreState = useStore.getState().getDailyScore();
+        // Calculate counts for insight
+        const completedTasks = tasks.filter(t => t.status === 'DONE');
+        const adultCount = completedTasks.filter(t => t.type === 'ADULT').length;
+        const childCount = completedTasks.filter(t => t.type === 'CHILD').length;
+        const restCount = completedTasks.filter(t => t.type === 'REST').length;
+        
+        const insight = generateSmartInsight(balance as any, score, adultCount, childCount, restCount);
+
+        if (activeMode === 'advice') {
+           responseText = `**[OFFLINE MODE]**\n\n${insight}`;
+        } else if (activeMode === 'chat') {
+            // Check if user wants to schedule something
+            const parsed = parseOfflineTask(input);
+            const isTaskRequest = parsed.title && parsed.title !== 'New Task';
+            
+            if (isTaskRequest) {
+                // Determine if it was explicit enough to just do it?
+                // For now, we suggest it as an action
+                responseText = `I've prepared that task for you.`;
+                actions.push({
+                    type: 'CREATE_TASK',
+                    title: parsed.title!,
+                    taskType: parsed.type || 'ADULT',
+                    duration: parsed.duration || 30,
+                    scheduledDate: parsed.scheduledDate,
+                    scheduledTime: parsed.scheduledTime,
+                    projectedScore: 5 // Static for offline
+                });
+            } else {
+                responseText = `**[OFFLINE MODE]**\n\nI am currently offline, but I can still help you schedule tasks or check your balance.\n\nType something like **"Break at 12pm for 1 hour"** to add a task.\n\n> ${insight}`;
+            }
+        } else {
+             responseText = `**[OFFLINE MODE]**\n\n${insight}\n\n*Detailed tracking is available when online.*`;
+        }
+
+        setMessages(prev => prev.map(msg => msg.id === aiMsgId ? { ...msg, content: responseText, actions: actions.length > 0 ? actions : undefined } : msg));
     };
 
     const deleteMessage = (id: string) => setMessages(prev => prev.filter(msg => msg.id !== id));

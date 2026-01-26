@@ -7,38 +7,46 @@ export interface ParsedDateTime {
     date?: string; // YYYY-MM-DD
     time?: string; // HH:MM
     duration?: number; // In minutes, detected from "15mins" etc
+    remainingText?: string; // The text content left after parsing (Title)
 }
 
 export const parseNaturalDateTime = (input: string): ParsedDateTime => {
-    const clean = input.toLowerCase().trim();
+    let clean = input.trim();
     const now = new Date();
     let targetDate = new Date(now);
     let targetTime: string | undefined;
     let detectedDuration: number | undefined;
 
-    // 1. Detect Duration FIRST to remove it from string (avoid "15 mins" -> time 15:00)
-    const durationMatch = clean.match(/(\d+)\s*(mins?|minutes?|hrs?|hours?)/);
-    let cleanWithoutDuration = clean;
+    // Helper to remove text case-insensitively
+    const removePattern = (text: string, pattern: string | RegExp) => {
+        if (typeof pattern === 'string') {
+            return text.replace(pattern, ' ').replace(/\s+/g, ' ').trim();
+        }
+        return text.replace(pattern, ' ').replace(/\s+/g, ' ').trim();
+    };
+
+    // 1. Detect Duration FIRST
+    // specific "for X ..." pattern to avoid "Task 2" matches
+    const durationMatch = clean.match(/for\s+(\d+)\s*(mins?|minutes?|hrs?|hours?)/i) || clean.match(/(\d+)\s*(mins?|minutes?|hrs?|hours?)/i);
+    
     if (durationMatch) {
         const val = parseInt(durationMatch[1]);
-        const unit = durationMatch[2];
+        const unit = durationMatch[2].toLowerCase();
         if (unit.startsWith('h')) {
             detectedDuration = val * 60;
         } else {
             detectedDuration = val;
         }
-        // Remove from string to prevent confusing the time parser
-        cleanWithoutDuration = clean.replace(durationMatch[0], '');
+        clean = removePattern(clean, durationMatch[0]);
     }
 
     // 2. Extract Date
-    // Patterns:
-    // a) M-D-YY or M-D-YYYY (e.g. 1-24-26, 01/24/2026)
-    const numericDateMatch = cleanWithoutDuration.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
-    // b) MMM D (e.g. Jan 26, January 26th)
+    // a) M-D-YY or M-D-YYYY
+    const numericDateMatch = clean.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+    // b) MMM D
     const months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
-    const namedDateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`);
-    const namedDateMatch = cleanWithoutDuration.match(namedDateRegex);
+    const namedDateRegex = new RegExp(`(?:${months})[a-z]*\\s+(\\d{1,2})(?:st|nd|rd|th)?`, 'i');
+    const namedDateMatch = clean.match(namedDateRegex);
 
     if (numericDateMatch) {
         const m = parseInt(numericDateMatch[1]) - 1;
@@ -46,89 +54,94 @@ export const parseNaturalDateTime = (input: string): ParsedDateTime => {
         let y = parseInt(numericDateMatch[3]);
         if (y < 100) y += 2000;
         targetDate = new Date(y, m, d);
+        clean = removePattern(clean, numericDateMatch[0]);
     } else if (namedDateMatch) {
         const day = parseInt(namedDateMatch[1]);
-        const monthStr = cleanWithoutDuration.match(new RegExp(`(${months})`))![0];
+        const monthStr = namedDateMatch[0].toLowerCase().match(new RegExp(`(${months})`))![0];
         const monthIndex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].indexOf(monthStr.substring(0, 3));
         targetDate.setMonth(monthIndex);
         targetDate.setDate(day);
 
-        // Handle year rollover (if user says "Jan" in Dec, mean next year)
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
         if (targetDate < oneMonthAgo) {
             targetDate.setFullYear(targetDate.getFullYear() + 1);
         }
-    } else if (cleanWithoutDuration.includes('tomorrow')) {
+        clean = removePattern(clean, namedDateMatch[0]);
+    } else if (clean.match(/\btomorrow\b/i)) {
         targetDate.setDate(targetDate.getDate() + 1);
-    } else if (cleanWithoutDuration.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)) {
-        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const targetDayName = cleanWithoutDuration.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/)![1];
-        const targetDayIndex = dayNames.indexOf(targetDayName);
-        const currentDayIndex = targetDate.getDay();
-        let daysToAdd = targetDayIndex - currentDayIndex;
-        if (daysToAdd <= 0) daysToAdd += 7;
-        targetDate.setDate(targetDate.getDate() + daysToAdd);
+        clean = removePattern(clean, /\btomorrow\b/i);
+    } else if (clean.match(/\btoday\b/i)) {
+        // Just remove 'today', date is already now
+        clean = removePattern(clean, /\btoday\b/i);
+    } else {
+         const nextDayMatch = clean.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
+         if (nextDayMatch) {
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const targetDayName = nextDayMatch[1].toLowerCase();
+            const targetDayIndex = dayNames.indexOf(targetDayName);
+            const currentDayIndex = targetDate.getDay();
+            let daysToAdd = targetDayIndex - currentDayIndex;
+            if (daysToAdd <= 0) daysToAdd += 7;
+            targetDate.setDate(targetDate.getDate() + daysToAdd);
+            clean = removePattern(clean, nextDayMatch[0]);
+         }
     }
 
     // 3. Extract Time
-    // Clean specific patterns that shouldn't match time
-    let timeSearchStr = cleanWithoutDuration;
-    const dateMatchUsed = numericDateMatch || namedDateMatch;
-    if (dateMatchUsed) {
-        timeSearchStr = timeSearchStr.replace(dateMatchUsed[0], '');
-    }
+    const timeRegex = /(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/gi;
+    let bestTimeMatch: RegExpExecArray | null = null;
+    let targetTimeStr: string | undefined;
 
-    // Regex for:
-    // "at 5"
-    // "at 5:30"
-    // "5pm" "5:30pm"
-    // "17:00"
-    // Excludes bare numbers unless "at" is present, to avoid "Task 2" being 2:00
-    const timeRegex = /(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/g;
-
-    // We want to find the *best* match, essentially looking for specific indicators
-    // Iterate matches to find one with am/pm OR 'at' OR colon
+    // Find the *best* time match (prioritize ones with am/pm or :)
     let match;
-    while ((match = timeRegex.exec(timeSearchStr)) !== null) {
+    while ((match = timeRegex.exec(clean)) !== null) {
         const fullMatch = match[0];
-        const hasAt = fullMatch.trim().startsWith('at');
+        const hasAt = fullMatch.toLowerCase().trim().startsWith('at');
         const hasAmPm = !!match[3];
         const hasColon = !!match[2];
         const val = parseInt(match[1]);
 
-        // Valid time indicator?
         if (hasAt || hasAmPm || hasColon) {
-            let h = val;
-            const m = match[2] ? parseInt(match[2]) : 0;
-            const ampm = match[3];
+             let h = val;
+             const m = match[2] ? parseInt(match[2]) : 0;
+             const ampm = match[3] ? match[3].toLowerCase() : undefined;
 
-            if (ampm === 'pm' && h < 12) h += 12;
-            if (ampm === 'am' && h === 12) h = 0;
+             if (ampm === 'pm' && h < 12) h += 12;
+             if (ampm === 'am' && h === 12) h = 0;
 
-            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
-                targetTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                break; // Found a valid time
-            }
+             if (h >= 0 && h < 24 && m >= 0 && m < 60) {
+                 targetTimeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                 bestTimeMatch = match;
+                 break;
+             }
         }
     }
 
-    // Handle "in X hours" format for time
-    const relativeTimeMatch = cleanWithoutDuration.match(/in\s+(\d+)\s+hours?/);
-    if (relativeTimeMatch && !targetTime) { // specific time overrides relative
-        const hours = parseInt(relativeTimeMatch[1]);
-        const relDate = new Date(); // Use distinct date object for calc
-        relDate.setHours(relDate.getHours() + hours);
-        targetTime = `${relDate.getHours().toString().padStart(2, '0')}:${relDate.getMinutes().toString().padStart(2, '0')}`;
-
-        // If it crosses midnight, should we update date? 
-        // For simplicity, let's update targetDate if it was "today"
-        if (targetDate.toDateString() === new Date().toDateString()) {
-            if (relDate.getDate() !== new Date().getDate()) {
-                targetDate.setDate(targetDate.getDate() + 1);
-            }
+    if (bestTimeMatch) {
+        targetTime = targetTimeStr;
+        clean = removePattern(clean, bestTimeMatch[0]);
+    } else {
+        // Handle "in X hours"
+        const relativeTimeMatch = clean.match(/in\s+(\d+)\s+hours?/i);
+        if (relativeTimeMatch) {
+             const hours = parseInt(relativeTimeMatch[1]);
+             const relDate = new Date();
+             relDate.setHours(relDate.getHours() + hours);
+             targetTime = `${relDate.getHours().toString().padStart(2, '0')}:${relDate.getMinutes().toString().padStart(2, '0')}`;
+             
+             if (targetDate.toDateString() === new Date().toDateString()) {
+                 if (relDate.getDate() !== new Date().getDate()) {
+                     targetDate.setDate(targetDate.getDate() + 1);
+                 }
+             }
+             clean = removePattern(clean, relativeTimeMatch[0]);
         }
     }
+
+    // Clean up "at" if left over (e.g. "Break at" -> "Break")
+    clean = clean.replace(/\bat\s*$/i, '').trim(); 
+    clean = clean.replace(/^\s*at\b/i, '').trim();
 
     const year = targetDate.getFullYear();
     const month = String(targetDate.getMonth() + 1).padStart(2, '0');
@@ -141,7 +154,8 @@ export const parseNaturalDateTime = (input: string): ParsedDateTime => {
     return {
         date: dateStr !== todayStr ? dateStr : undefined,
         time: targetTime,
-        duration: detectedDuration
+        duration: detectedDuration,
+        remainingText: clean // Extracted Title
     };
 };
 
