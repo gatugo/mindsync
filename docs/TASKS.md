@@ -61,6 +61,17 @@ Last Updated: January 20, 2026
 
 ---
 
+
+### January 25, 2026
+- **Architecture Upgrade**:
+    - [x] **Hybrid AI Provider**: Implemented `Google Gemini 2.0 Flash` as primary with `Groq` fallback.
+    - [x] **Robust Rate Limiting**: Added failover logic to `route.ts`.
+- **UX/UI Polish**:
+    - [x] **Mobile Bottom Sheet**: Converted `EditTaskModal` to a slide-up drawer for mobile.
+    - [x] **Responsive Logic**: Ensured desktop retains centered modal layout.
+
+---
+
 ## 📝 Session Notes
 
 ### January 24, 2026
