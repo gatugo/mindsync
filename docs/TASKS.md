@@ -67,6 +67,14 @@ Last Updated: January 20, 2026
 ---
 
 
+### January 26, 2026 - Codebase Cleanup
+- **Documentation Organization**:
+    - Created `docs/archive` directory.
+    - Archived legacy folders: `stitch`, `screenshots`, `demo`, `notes`.
+    - Archived `PROJECT_RETROSPECTIVE.md` & `DEMO_SCRIPT.md`.
+- **Verification**:
+    - Verified build passes with new structure.
+
 ### January 25, 2026
 - **Architecture Upgrade**:
     - [x] **Hybrid AI Provider**: Implemented `Google Gemini 2.0 Flash` as primary with `Groq` fallback.
