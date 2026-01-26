@@ -323,3 +323,33 @@ git reset --hard f3bfb50
 - **Mobile Testing:** Verify live site on mobile devices (User).
 - **Social Sharing:** Prepare launch posts (Optional).
 
+
+---
+
+## January 26, 2026 - Phase 6: AI Logic & UI Polish
+
+**Duration:** ~2 hours
+**Focus:** AI Capability Refinement, Data Sorting, and Chat UI Response
+
+### Accomplished
+
+#### 1. AI Coach UI Overhaul
+- **Responsive Design:** 'Bottom Sheet' on mobile, centered modal on desktop.
+- **Visuals:** Glassmorphic AI bubbles, Gradient User bubbles, distinct Action Cards.
+- **Logic:** Refactored valid logic from route.ts to src/lib/coachLogic.ts.
+
+#### 2. Enhanced Data Logic
+- **Time Parsing:** Added support for compact formats like '130p', '5a'.
+- **Data Sorting:** Enforced consistent sorting (Tasks: Time, Goals: Urgency, History: Newest).
+
+#### 3. Verification & Testing
+- **Test Scripts:** Created scripts/test-ai-logic.ts and scripts/test-date-parsing.ts.
+- **Results:** Date Parsing 100% Pass, AI Logic 8/8 Pass.
+- **Build:** Verified npm run build passes.
+
+### Key Files Modified
+- src/components/AICoachModal.tsx
+- src/lib/coachLogic.ts
+- src/store/useStore.ts
+- src/lib/datePatterns.ts
+
