@@ -86,6 +86,8 @@ export default function EditTaskModal({ isOpen, onClose, task, initialDate, init
                 })
             });
 
+            if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
             const data = await res.json();
             if (data.success && data.response) {
                 const suggestion = JSON.parse(data.response);
@@ -94,13 +96,29 @@ export default function EditTaskModal({ isOpen, onClose, task, initialDate, init
                 if (suggestion.suggestedType) setType(suggestion.suggestedType as TaskType);
                 if (suggestion.suggestedDate) setDate(suggestion.suggestedDate);
                 if (suggestion.suggestedTime) setTime(suggestion.suggestedTime);
-                // Smart Duration or default
                 if (suggestion.duration) setDuration(suggestion.duration);
-                 
-                // Clean title (optional, currently keeping it as user typed)
             }
         } catch (error) {
-            console.error('Smart Fill failed', error);
+            console.warn('Smart Fill fallback used due to error:', error);
+            
+            // === OFFLINE FALLBACK ===
+            // If AI fails (offline, rate limit, error), use local regex parser
+            const localResult = parseNaturalDateTime(title);
+            
+            if (localResult.date) setDate(localResult.date);
+            if (localResult.time) setTime(localResult.time);
+            if (localResult.duration) setDuration(localResult.duration);
+            
+            // Heuristic for Task Type (Basic Keyword Matching)
+            const lower = title.toLowerCase();
+            if (lower.includes('gym') || lower.includes('workout') || lower.includes('read') || lower.includes('sleep') || lower.includes('nap')) {
+                setType('REST');
+            } else if (lower.includes('play') || lower.includes('game') || lower.includes('movie') || lower.includes('watch') || lower.includes('date')) {
+                setType('CHILD');
+            } else {
+                setType('ADULT'); // Default
+            }
+
         } finally {
             setIsAILoading(false);
         }
