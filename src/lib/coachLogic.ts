@@ -114,7 +114,7 @@ User Profile:${prefsStr}`;
             const historyStr = conversationHistory?.length ? '\n\nPrevious conversation:\n' + conversationHistory.map((msg: any) => `${msg.role === 'user' ? 'User' : 'Coach'}: ${msg.content}`).join('\n') : '';
             const todayTasksList = tasks ? tasks.filter((t: any) => t.scheduledDate === currentDateKey) : [];
             const tasksStr = todayTasksList.length > 0 ? `Today's Tasks (${currentDateKey}): ${todayTasksList.map((t: any) => `${t.title} (${t.type}${t.scheduledTime ? ` at ${t.scheduledTime}` : ''})`).join(', ')}` : "No tasks scheduled for today.";
-            const historySummary = (history || []).slice(-7).map((h: any) => `- ${h.date}: Score ${h.score}, Adult ${h.adultCompleted}, Child ${h.childCompleted}`).join('\n');
+            const historySummary = (history || []).slice(-7).map((h: any) => `- ${h.date}: Score ${h.score}, Adult ${h.adultCompleted}, Child ${h.childCompleted}, Rest ${h.restCompleted || 0}`).join('\n');
             return `${commonContext}\n${tasksStr}\n${historySummary ? `\nPast 7 Days History:\n${historySummary}\n` : ''}${goals ? `Active Goals: ${goals.map((g: any) => `${g.title} (due ${g.targetDate})`).join(', ')}` : ''}${historyStr}
 
 User question: ${question}
