@@ -179,6 +179,28 @@ export default function SettingsTab({ showGoals, setShowGoals, handleImport, han
                             </div>
                         )}
 
+
+                        {/* AI & Offline Toggle */}
+                        <div className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-slate-800/50 rounded-2xl border border-indigo-100 dark:border-white/5">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${tempPrefs.aiEnabled ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
+                                    <span className="material-icons-round text-xl">{tempPrefs.aiEnabled ? 'smart_toy' : 'power_off'}</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">Enable AI Intelligence</p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                        {tempPrefs.aiEnabled ? 'Using Gemini/Groq for advanced advice' : 'Using Offline Smart Logic only'}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setTempPrefs(p => ({ ...p, aiEnabled: !p.aiEnabled }))}
+                                className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${tempPrefs.aiEnabled ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                            >
+                                <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${tempPrefs.aiEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+
                         {/* Sleep Schedule */}
                         <div className="space-y-4">
                             <label className="flex items-center gap-2 text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">

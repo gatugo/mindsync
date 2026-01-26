@@ -8,6 +8,7 @@ export interface UserPreferences {
     work: string[];
     sleepStartTime?: string; // HH:MM
     sleepEndTime?: string; // HH:MM
+    aiEnabled?: boolean;
 }
 
 export interface Task {

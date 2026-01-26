@@ -227,6 +227,14 @@ export default function AICoachScreen({
         setError('');
 
         try {
+            // CHECK: IF AI DISABLED, FORCE OFFLINE
+            if (preferences.aiEnabled === false) { // Strict check in case undefined (default true)
+                await runOfflineLogic(activeMode, currentQuestion);
+                setIsLoading(false);
+                setIsTyping(false);
+                return;
+            }
+
             const now = new Date();
             const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const localTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -401,13 +409,13 @@ export default function AICoachScreen({
 
                 {messages.map((msg) => (
                     <div key={msg.id} className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1 shadow-lg border border-white/10 ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-gradient-to-br from-purple-600 to-indigo-600'}`}>
-                                {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                        <div className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 mt-1 shadow-lg border border-white/10 transition-transform hover:scale-105 duration-300 ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-gradient-to-br from-purple-600 to-indigo-600'}`}>
+                                {msg.role === 'user' ? <User className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-white" />}
                             </div>
-                            <div className={`relative max-w-[85%] rounded-2xl p-4 shadow-xl backdrop-blur-md border ${msg.role === 'user' ? 'bg-indigo-500/20 border-indigo-500/30 text-white' : 'bg-slate-800/60 border-white/10 text-white/95'}`}>
-                                <div className="text-sm leading-relaxed">{renderMarkdown(msg.content)}</div>
-                                <button onClick={() => deleteMessage(msg.id)} className={`absolute -top-2 p-1 rounded-full bg-slate-800 border border-white/10 text-white/40 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100 ${msg.role === 'user' ? '-left-2' : '-right-2'}`} title="Delete"><X className="w-3 h-3" /></button>
+                            <div className={`relative max-w-[85%] rounded-3xl p-5 shadow-2xl backdrop-blur-xl border transition-all duration-300 group ${msg.role === 'user' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 border-white/10 text-white rounded-tr-sm' : 'bg-slate-800/80 border-white/5 text-slate-100 rounded-tl-sm ring-1 ring-white/5'}`}>
+                                <div className="text-[15px] leading-relaxed tracking-wide font-medium">{renderMarkdown(msg.content)}</div>
+                                <button onClick={() => deleteMessage(msg.id)} className={`absolute -top-3 p-1.5 rounded-full bg-slate-900/80 border border-white/10 text-white/40 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-md shadow-lg ${msg.role === 'user' ? '-left-3' : '-right-3'}`} title="Delete"><X className="w-3 h-3" /></button>
                             </div>
                         </div>
 
@@ -495,15 +503,15 @@ export default function AICoachScreen({
                 ))}
 
                 {isLoading && (
-                    <div className="flex items-center gap-3 ml-11 animate-in fade-in duration-300">
-                        <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-4 border border-white/5 shadow-xl">
-                            <div className="flex gap-1.5">
-                                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-[bounce_1s_infinite]" />
-                                <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-[bounce_1s_infinite_0.2s]" />
-                                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-[bounce_1s_infinite_0.4s]" />
-                            </div>
+                    <div className="flex items-center gap-4 ml-12 animate-in fade-in duration-500">
+                        <div className="relative w-8 h-8 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-indigo-500/20 rounded-full animate-ping duration-[2s]" />
+                            <div className="absolute inset-2 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full animate-pulse shadow-lg shadow-indigo-500/40" />
                         </div>
-                        <span className="text-xs text-white/30 font-medium animate-pulse">Thinking...</span>
+                        <div className="flex flex-col gap-0.5">
+                            <span className="text-xs font-bold text-slate-300 tracking-wide animate-pulse">Analyzing...</span>
+                            <span className="text-[9px] text-slate-500 font-medium uppercase tracking-widest">Consulting Neural Core</span>
+                        </div>
                     </div>
                 )}
                 <div ref={messagesEndRef} className="h-4" />
@@ -527,9 +535,13 @@ export default function AICoachScreen({
                     <button
                         onClick={() => { handleAskCoach('chat'); setMode('chat'); }}
                         disabled={!question.trim() || isLoading}
-                        className="h-[36px] w-[36px] rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center shrink-0 border border-white/10"
+                        className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:grayscale transition-all flex items-center justify-center shrink-0 border border-white/10 group"
                     >
-                        <Send className="w-3.5 h-3.5 ml-0.5" />
+                        {isLoading ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <Sparkles className="w-4 h-4 ml-0.5 group-hover:animate-pulse" />
+                        )}
                     </button>
                 </div>
             </div>

@@ -151,7 +151,7 @@ export default function AddTaskPanel({ isOpen, onClose, onAdd }: AddTaskPanelPro
             console.error('AI Smart Add error:', error);
 
             // Local Regex Fallback when API fails (e.g. Rate Limits)
-            console.log('Using local fallback parsing...');
+            // console.log('Using local fallback parsing...');
             const parsed = parseNaturalDateTime(title);
 
             if (parsed.date || parsed.time || parsed.duration) {

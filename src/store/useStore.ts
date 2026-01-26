@@ -71,7 +71,8 @@ export const useStore = create<StoreState>((set, get) => ({
         hobbies: getPreferencesFromEnv('NEXT_PUBLIC_USER_HOBBIES', ['Reading', 'Hiking', 'Gaming']),
         interests: getPreferencesFromEnv('NEXT_PUBLIC_USER_INTERESTS', ['Technology', 'Art', 'Music']),
         passions: getPreferencesFromEnv('NEXT_PUBLIC_USER_PASSIONS', ['Learning', 'Creativity']),
-        work: getPreferencesFromEnv('NEXT_PUBLIC_USER_WORK', ['Software Dev', 'Management'])
+        work: getPreferencesFromEnv('NEXT_PUBLIC_USER_WORK', ['Software Dev', 'Management']),
+        aiEnabled: true,
     },
 
     fetchInitialData: async () => {
@@ -271,7 +272,8 @@ export const useStore = create<StoreState>((set, get) => ({
             passions: newPrefs.passions,
             work: newPrefs.work,
             sleep_start_time: newPrefs.sleepStartTime,
-            sleep_end_time: newPrefs.sleepEndTime
+            sleep_end_time: newPrefs.sleepEndTime,
+
         });
     },
 

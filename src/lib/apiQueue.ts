@@ -83,7 +83,7 @@ class ApiQueue {
                 } else {
                     // Exponential backoff
                     const backoffTime = Math.pow(2, request.retries) * 1000;
-                    console.log(`Retry ${request.retries}/${this.maxRetries} after ${backoffTime}ms`);
+                    // console.log(`Retry ${request.retries}/${this.maxRetries} after ${backoffTime}ms`);
                     await this.sleep(backoffTime);
                 }
             }

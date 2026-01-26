@@ -268,14 +268,14 @@ export async function POST(req: NextRequest) {
         if (body.mode === 'schedule_assist') {
             try {
                 // Try Gemini First
-                console.log('🤖 Attempting Gemini JSON...');
+                // console.log('🤖 Attempting Gemini JSON...');
                 const json = await callGeminiJSON(prompt);
                 return NextResponse.json({ success: true, response: json });
             } catch (err) {
                 console.error('⚠️ Gemini JSON Failed:', err);
                 // Fallback Groq
                 try {
-                    console.log('🔄 Swapping to Groq JSON...');
+                    // console.log('🔄 Swapping to Groq JSON...');
                     const json = await callGroqJSON(prompt);
                     return NextResponse.json({ success: true, response: json });
                 } catch (groqErr) {
@@ -288,7 +288,7 @@ export async function POST(req: NextRequest) {
         else {
             try {
                 // Try Gemini First
-                console.log('🤖 Attempting Gemini Stream...');
+                // console.log('🤖 Attempting Gemini Stream...');
                 const geminiStream = await callGeminiStream(prompt);
                 return new NextResponse(geminiStream);
             } catch (geminiError) {
@@ -296,7 +296,7 @@ export async function POST(req: NextRequest) {
                 
                 // Fallback Groq
                 try {
-                    console.log('🔄 Swapping to Groq Stream...');
+                    // console.log('🔄 Swapping to Groq Stream...');
                     const groqStream = await callGroqStream(prompt);
                     
                     // Inject Warning

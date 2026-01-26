@@ -57,10 +57,13 @@ Last Updated: January 20, 2026
 ### Phase 5: Smart Fallback Logic (Non-AI)
 - [x] **Smart Insight Engine**: deterministic advice based on user's daily balance stats.
 - [x] **Offline Natural Language Parsing**: Enhance regex parser to handle task creation without AI.
+- [x] **Smart Insight Engine**: deterministic advice based on user's daily balance stats.
+- [x] **Offline Natural Language Parsing**: Enhance regex parser to handle task creation without AI.
 - [x] **Failover Integration**: Ensure UI seamlessly switches to this logic if AI services are unreachable.
+- [x] **AI Manual Toggle**: User setting to force offline/rule-based logic.
 
 ### Phase 6: AI & Data Refinement (Next)
-- [ ] **Chat UI/UX Refinement**: Improve the visual hierarchy and interaction flow of the AI Coach.
+- [x] **Chat UI/UX Refinement**: Improve the visual hierarchy and interaction flow of the AI Coach.
 - [ ] **AI Logic Testing**: rigorous testing of the "Hybrid" engine and "Ego" persona responses.
 - [ ] **Data Sorting & Logic**: Improve task sorting algorithms and data persistence reliability.
 
@@ -79,6 +82,15 @@ Last Updated: January 20, 2026
     - Archived `PROJECT_RETROSPECTIVE.md` & `DEMO_SCRIPT.md`.
 - **Verification**:
     - Verified build passes with new structure.
+
+### January 26, 2026 - Smart Fallback Logic
+- **Offline Autonomy**:
+    - Implemented `Smart Insight Engine` (deterministic advice).
+    - Enhanced `Offline Parser` (extracts Title, Date, Time, Duration).
+    - Integrated Failover in `AICoachScreen` (auto-switch on API failure).
+    - Verified build passes.
+    - **Logic Explained**: System is "Functional" (Calculated/Safe) without AI, but "Insightful" (Nuanced/Empathetic) with AI.
+    - Added **AI Manual Toggle** in Settings to force Offline Mode.
 
 ### January 25, 2026
 - **Architecture Upgrade**:
