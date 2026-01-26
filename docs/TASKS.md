@@ -54,6 +54,11 @@ Last Updated: January 20, 2026
 - [x] Fix Timezone date display mismatch (PST/UTC)
 - [x] Streaming AI responses (word-by-word)
 
+### Phase 5: Native Interactions (Next)
+- [ ] **Fluid Swipe Gestures**: Implement swipe-to-complete (right) and swipe-to-edit/delete (left) on Timeline cards.
+- [ ] **Haptic Feedback**: Add vibration patterns for profound interactions (completion, errors).
+- [ ] **"Magic Plan" Button**: Move AI Plan button to Timeline header for one-tap access.
+
 ### Future Enhancements
 - [ ] More natural language patterns ("this Friday", "in 30 min")
 - [ ] Push notifications for upcoming tasks
