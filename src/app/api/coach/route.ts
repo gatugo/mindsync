@@ -52,7 +52,7 @@ function format12h(totalMinutes: number): string {
     return `${displayH}${displayM}${ampm}`;
 }
 
-function calculateFreeSlots(tasks: CoachRequest['tasks'], targetDate?: string, preferences?: any): string {
+export function calculateFreeSlots(tasks: CoachRequest['tasks'], targetDate?: string, preferences?: any): string {
     if (!tasks || !targetDate) return 'Unknown';
     const todayTasks = tasks
         .filter(t => t.scheduledDate === targetDate && t.scheduledTime && t.status !== 'DONE')
@@ -96,7 +96,7 @@ function calculateFreeSlots(tasks: CoachRequest['tasks'], targetDate?: string, p
     return slots.length > 0 ? slots.join(', ') : 'None (Busy)';
 }
 
-function buildPrompt(request: CoachRequest): string {
+export function buildPrompt(request: CoachRequest): string {
     const { mode, tasks, score, balance, question, history, goals, preferences, taskTitle, conversationHistory, localDate, localTime } = request;
     const now = new Date();
     const currentTimeStr = localTime || `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;

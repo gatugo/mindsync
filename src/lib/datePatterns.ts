@@ -89,38 +89,74 @@ export const parseNaturalDateTime = (input: string): ParsedDateTime => {
     }
 
     // 3. Extract Time
-    const timeRegex = /(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/gi;
-    let bestTimeMatch: RegExpExecArray | null = null;
+    // Patterns:
+    // 1. HH:MM am/pm (old)
+    // 2. HHMMam/pm (compact 4 digit) -> 1030am
+    // 3. HMMam/pm (compact 3 digit) -> 130p
+    // 4. Ham/pm (compact 1-2 digit) -> 5p, 11a
+    
+    // Combined Regex: 
+    // Group 1: HH (standard)
+    // Group 2: MM (standard)
+    // Group 3: am/pm (standard)
+    // Group 4: HHMM (compact)
+    // Group 5: am/pm/a/p (compact)
+    // Group 6: HH (compact short)
+    // Group 7: am/pm/a/p (compact short)
+    
+    // We'll iterate multiple reliable patterns instead of one giant one to avoid complexity
+    const patterns = [
+        /(?:at\s+)?(\d{1,2}):(\d{2})\s*(am|pm)?/i,      // 1:30pm (Standard)
+        /(\d{1,2})(\d{2})\s*(am|pm|a|p)/i,              // 130p, 1030am (Compact Time)
+        /(\d{1,2})\s*(am|pm|a|p)/i                      // 5p, 11a (Hour Only)
+    ];
+
+    let bestTimeMatchString = '';
     let targetTimeStr: string | undefined;
 
-    // Find the *best* time match (prioritize ones with am/pm or :)
-    let match;
-    while ((match = timeRegex.exec(clean)) !== null) {
-        const fullMatch = match[0];
-        const hasAt = fullMatch.toLowerCase().trim().startsWith('at');
-        const hasAmPm = !!match[3];
-        const hasColon = !!match[2];
-        const val = parseInt(match[1]);
+    for (const regex of patterns) {
+        const match = clean.match(regex);
+        if (match) {
+            let h = 0;
+            let m = 0;
+            let ampm = '';
+            
+            // Determine structure based on regex index/groups
+            if (match[0].includes(':')) {
+                // Case 1: Standard 1:30
+                h = parseInt(match[1]);
+                m = parseInt(match[2]);
+                ampm = match[3]?.toLowerCase();
+            } else if (match[1] && match[2] && match[3]) {
+                 // Case 2: Compact 130p
+                 h = parseInt(match[1]);
+                 m = parseInt(match[2]);
+                 ampm = match[3].toLowerCase();
+            } else if (match[1] && match[2]) {
+                // Case 3: Hour Only 5p
+                h = parseInt(match[1]);
+                m = 0;
+                ampm = match[2].toLowerCase();
+            }
 
-        if (hasAt || hasAmPm || hasColon) {
-             let h = val;
-             const m = match[2] ? parseInt(match[2]) : 0;
-             const ampm = match[3] ? match[3].toLowerCase() : undefined;
+            // Normalize AM/PM shorthand
+            if (ampm === 'a') ampm = 'am';
+            if (ampm === 'p') ampm = 'pm';
 
-             if (ampm === 'pm' && h < 12) h += 12;
-             if (ampm === 'am' && h === 12) h = 0;
+            if (ampm === 'pm' && h < 12) h += 12;
+            if (ampm === 'am' && h === 12) h = 0;
 
-             if (h >= 0 && h < 24 && m >= 0 && m < 60) {
+            if (h >= 0 && h < 24 && m >= 0 && m < 60) {
                  targetTimeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                 bestTimeMatch = match;
-                 break;
-             }
+                 bestTimeMatchString = match[0];
+                 break; // Found a valid match, stop
+            }
         }
     }
 
-    if (bestTimeMatch) {
+    if (bestTimeMatchString) {
         targetTime = targetTimeStr;
-        clean = removePattern(clean, bestTimeMatch[0]);
+        clean = removePattern(clean, bestTimeMatchString);
     } else {
         // Handle "in X hours"
         const relativeTimeMatch = clean.match(/in\s+(\d+)\s+hours?/i);

@@ -60,6 +60,45 @@ const getTodayString = (): string => {
     return new Date().toISOString().split('T')[0];
 };
 
+// Sorting Helpers
+const sortTasks = (tasks: Task[]): Task[] => {
+    return [...tasks].sort((a, b) => {
+        // 1. Sort by Date
+        const dateA = a.scheduledDate || '9999-99-99';
+        const dateB = b.scheduledDate || '9999-99-99';
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+
+        // 2. Sort by Time (Treat undefined as last for the day, or first? Usually specific time comes first, but undefined means "all day" or "unscheduled")
+        // Let's put specific times first, then undefined.
+        // Actually, chronological: undefined might mean "anytime", let's put it at the end.
+        const timeA = a.scheduledTime || '23:59:59';
+        const timeB = b.scheduledTime || '23:59:59';
+        if (timeA !== timeB) return timeA.localeCompare(timeB);
+
+        // 3. Sort by Creation (Stable)
+        return a.createdAt.localeCompare(b.createdAt);
+    });
+};
+
+const sortGoals = (goals: Goal[]): Goal[] => {
+    return [...goals].sort((a, b) => {
+        // 1. Completion Status (Active first) - logic usually filters this, but good to have
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+
+        // 2. Target Date (Urgency)
+        const dateA = a.targetDate || '9999-99-99';
+        const dateB = b.targetDate || '9999-99-99';
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+
+        // 3. Created At
+        return a.createdAt.localeCompare(b.createdAt);
+    });
+};
+
+const sortHistory = (history: DailySnapshot[]): DailySnapshot[] => {
+    return [...history].sort((a, b) => b.date.localeCompare(a.date)); // Newest first
+};
+
 // ============ STORE ============
 export const useStore = create<StoreState>((set, get) => ({
     // Initial state
@@ -94,7 +133,13 @@ export const useStore = create<StoreState>((set, get) => ({
                 if (profile.sleep_end_time) newPrefs.sleepEndTime = profile.sleep_end_time;
             }
 
-            set({ tasks, goals, history, preferences: newPrefs, _hasHydrated: true });
+            set({ 
+                tasks: sortTasks(tasks), 
+                goals: sortGoals(goals), 
+                history: sortHistory(history), 
+                preferences: newPrefs, 
+                _hasHydrated: true 
+            });
         } catch (error) {
             console.error('Failed to fetch initial data:', error);
             set({ _hasHydrated: true });
@@ -125,7 +170,7 @@ export const useStore = create<StoreState>((set, get) => ({
         };
 
         // Optimistic Update
-        set((state) => ({ tasks: [...state.tasks, newTask] }));
+        set((state) => ({ tasks: sortTasks([...state.tasks, newTask]) }));
         get().saveDailySnapshot();
 
         // Sync
@@ -137,7 +182,7 @@ export const useStore = create<StoreState>((set, get) => ({
 
         // Optimistic
         set((state) => ({
-            tasks: state.tasks.map((task) =>
+            tasks: sortTasks(state.tasks.map((task) =>
                 task.id === taskId
                     ? {
                         ...task,
@@ -145,7 +190,7 @@ export const useStore = create<StoreState>((set, get) => ({
                         completedAt: newStatus === 'DONE' ? completedAt : task.completedAt,
                     }
                     : task
-            ),
+            )),
         }));
         get().saveDailySnapshot();
 
@@ -163,9 +208,9 @@ export const useStore = create<StoreState>((set, get) => ({
 
     updateTask: (taskId: string, updates: Partial<Pick<Task, 'title' | 'scheduledTime' | 'duration'>>) => {
         set((state) => ({
-            tasks: state.tasks.map((task) =>
+            tasks: sortTasks(state.tasks.map((task) =>
                 task.id === taskId ? { ...task, ...updates } : task
-            ),
+            )),
         }));
         get().saveDailySnapshot();
         api.updateTask(taskId, updates);
@@ -177,7 +222,7 @@ export const useStore = create<StoreState>((set, get) => ({
         doneTasks.forEach(task => api.deleteTask(task.id));
 
         set((state) => ({
-            tasks: state.tasks.filter((task) => task.status !== 'DONE'),
+            tasks: sortTasks(state.tasks.filter((task) => task.status !== 'DONE')),
         }));
         get().saveDailySnapshot();
     },
@@ -206,9 +251,9 @@ export const useStore = create<StoreState>((set, get) => ({
         if (existingIndex >= 0) {
             const newHistory = [...state.history];
             newHistory[existingIndex] = snapshot;
-            set({ history: newHistory });
+            set({ history: sortHistory(newHistory) });
         } else {
-            set({ history: [...state.history, snapshot] });
+            set({ history: sortHistory([...state.history, snapshot]) });
         }
 
         api.saveSnapshot(snapshot);
@@ -224,17 +269,17 @@ export const useStore = create<StoreState>((set, get) => ({
             completed: false,
             createdAt: new Date().toISOString(),
         };
-        set((state) => ({ goals: [...state.goals, newGoal] }));
+        set((state) => ({ goals: sortGoals([...state.goals, newGoal]) }));
         api.createGoal(newGoal);
     },
 
     editGoal: (goalId: string, title: string, targetDate: string, startTime?: string) => {
         set((state) => ({
-            goals: state.goals.map((goal) =>
+            goals: sortGoals(state.goals.map((goal) =>
                 goal.id === goalId
                     ? { ...goal, title, targetDate, startTime }
                     : goal
-            ),
+            )),
         }));
         api.updateGoal(goalId, { title, targetDate, startTime });
     },
@@ -330,7 +375,7 @@ export const useStore = create<StoreState>((set, get) => ({
     },
 
     getTasksByStatus: (status: TaskStatus) => {
-        return get().tasks.filter((task) => task.status === status);
+        return sortTasks(get().tasks.filter((task) => task.status === status));
     },
 
     exportData: () => {
@@ -349,9 +394,9 @@ export const useStore = create<StoreState>((set, get) => ({
             const data = JSON.parse(jsonData);
             if (data.tasks && data.history && data.goals) {
                 set({
-                    tasks: data.tasks,
-                    history: data.history,
-                    goals: data.goals,
+                    tasks: sortTasks(data.tasks),
+                    history: sortHistory(data.history),
+                    goals: sortGoals(data.goals),
                 });
                 return true;
             }
