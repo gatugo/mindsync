@@ -50,35 +50,25 @@ assert(prompt.includes('Ego Score: 80/100'), 'Prompt includes correct score');
 assert(prompt.includes('Morning Meeting (ADULT at 09:00)'), 'Prompt includes correct task list');
 
 // 3. Test Response Parsing (Action Blocks)
-// Regex from AICoachModal.tsx: /\[ACTION: CREATE_TASK \| (.*?)\]/gi;
+import { parseCoachResponse } from '../src/lib/coachLogic';
+
 const sampleResponse = `
 I think you should take a break.
-[ACTION: CREATE_TASK | Stare at Wall | REST | 15 | 2026-01-26 | 14:00]
+<thought>User needs rest.</thought>
+[ACTION: CREATE_TASK | Stare at Wall | REST | 15 | 2026-01-26 | 14:00 | +5]
 Also maybe do some work later.
 [ACTION: CREATE_TASK | Deep Work | ADULT | 60 | 2026-01-26 | 15:00]
 `;
 
-const actionRegex = /\[ACTION: CREATE_TASK \| (.*?)\]/gi;
-const actions = [];
-let match;
-while ((match = actionRegex.exec(sampleResponse)) !== null) {
-    const parts = match[1].split('|').map(p => p.trim());
-    if (parts.length >= 4) {
-        actions.push({
-            title: parts[0],
-            type: parts[1],
-            duration: parts[2],
-            date: parts.length === 5 ? parts[3] : parts[4], // The prompt example says: Title | Type | Duration | Date | Time (5 parts? No, 6 parts in example: Title|Type|Duration|Date|Time. Wait.
-            // Example in aiPrompts: Title | Type | Duration | Date | Time
-            // Let's check parts length.
-            // "Stare at Wall | REST | 15 | 2026-01-26 | 14:00" -> 5 parts.
-        });
-    }
-}
+const parsed = parseCoachResponse(sampleResponse);
 
-assert(actions.length === 2, 'Parsed 2 actions from response');
-assert(actions[0].title === 'Stare at Wall', 'Parsed Action 1 Title');
-assert(actions[1].title === 'Deep Work', 'Parsed Action 2 Title');
+assert(parsed.thought === 'User needs rest.', 'Parsed logic thought correctly');
+assert(parsed.actions.length === 2, 'Parsed 2 actions from response');
+assert(parsed.actions[0].title === 'Stare at Wall', 'Parsed Action 1 Title');
+assert(parsed.actions[0].projectedScore === 5, 'Parsed Action 1 Score');
+assert(parsed.actions[1].title === 'Deep Work', 'Parsed Action 2 Title');
+
+
 
 // Summary
 console.log(`\nPassed ${passed}/${total}`);

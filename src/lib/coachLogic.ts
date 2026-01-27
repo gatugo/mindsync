@@ -150,3 +150,55 @@ Respond with ONLY this JSON format:
         default: return 'Give me general advice about maintaining mental balance.';
     }
 }
+
+export interface SuggestedAction {
+    type: 'CREATE_TASK';
+    title: string;
+    taskType: 'ADULT' | 'CHILD' | 'REST';
+    duration: number;
+    scheduledDate?: string;
+    scheduledTime?: string;
+    projectedScore?: number;
+}
+
+export function parseCoachResponse(text: string): { cleanText: string; actions: SuggestedAction[]; thought?: string } {
+    let cleanText = text;
+    let thought: string | undefined;
+
+    // 1. Extract Thought
+    const thoughtRegex = /<thought>([\s\S]*?)<\/thought>/;
+    const thoughtMatch = cleanText.match(thoughtRegex);
+    if (thoughtMatch) {
+        thought = thoughtMatch[1].trim();
+        cleanText = cleanText.replace(thoughtRegex, '').trim();
+    }
+
+    // 2. Extract Actions
+    const actions: SuggestedAction[] = [];
+    const actionRegex = /\[ACTION: CREATE_TASK \| ([^\]]+)\]/gi;
+    cleanText = cleanText.replace(actionRegex, (match, content) => {
+        const parts = content.split('|').map((p: string) => p.trim());
+        if (parts.length >= 4) {
+            let projectedScore: number | undefined;
+            const lastPart = parts[parts.length - 1];
+            if (/^[+-]\d+$/.test(lastPart)) {
+                projectedScore = parseInt(lastPart);
+                parts.pop();
+            }
+
+            actions.push({
+                type: 'CREATE_TASK',
+                title: parts[0],
+                // @ts-ignore - Simple cast for string to union
+                taskType: parts[1] as 'ADULT' | 'CHILD' | 'REST',
+                duration: parseInt(parts[2]) || 30,
+                scheduledDate: parts.length >= 5 ? parts[3] : undefined,
+                scheduledTime: parts.length >= 5 ? parts[4] : parts[3],
+                projectedScore,
+            });
+        }
+        return '';
+    });
+
+    return { cleanText, actions, thought };
+}

@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { Task, DailySnapshot, Goal, TaskType } from '@/types';
 import { parseNaturalDateTime, format12h } from '@/lib/datePatterns';
 import { generateSmartInsight, parseOfflineTask } from '@/lib/smartLogic';
+import { parseCoachResponse } from '@/lib/coachLogic';
 
 interface AICoachScreenProps {
     tasks: Task[];
@@ -156,47 +157,8 @@ export default function AICoachScreen({
         return parts.length > 0 ? parts : text;
     };
 
-    // Unified Parser for Thought and Actions
-    const parseResponse = (text: string): { cleanText: string; actions: SuggestedAction[]; thought?: string } => {
-        let cleanText = text;
-        let thought: string | undefined;
-
-        // 1. Extract Thought
-        const thoughtRegex = /<thought>([\s\S]*?)<\/thought>/;
-        const thoughtMatch = cleanText.match(thoughtRegex);
-        if (thoughtMatch) {
-            thought = thoughtMatch[1].trim();
-            cleanText = cleanText.replace(thoughtRegex, '').trim();
-        }
-
-        // 2. Extract Actions
-        const actions: SuggestedAction[] = [];
-        const actionRegex = /\[ACTION: CREATE_TASK \| ([^\]]+)\]/gi;
-        cleanText = cleanText.replace(actionRegex, (match, content) => {
-            const parts = content.split('|').map((p: string) => p.trim());
-            if (parts.length >= 4) {
-                let projectedScore: number | undefined;
-                const lastPart = parts[parts.length - 1];
-                if (/^[+-]\d+$/.test(lastPart)) {
-                    projectedScore = parseInt(lastPart);
-                    parts.pop();
-                }
-
-                actions.push({
-                    type: 'CREATE_TASK',
-                    title: parts[0],
-                    taskType: parts[1] as TaskType,
-                    duration: parseInt(parts[2]) || 30,
-                    scheduledDate: parts.length >= 5 ? parts[3] : undefined,
-                    scheduledTime: parts.length >= 5 ? parts[4] : parts[3],
-                    projectedScore,
-                });
-            }
-            return '';
-        });
-
-        return { cleanText, actions, thought };
-    };
+    // Unified Response Parsing from shared logic
+    const parseResponse = parseCoachResponse;
 
     const handleExecuteAction = (action: SuggestedAction, messageId: string) => {
         if (action.type === 'CREATE_TASK') {
@@ -518,7 +480,7 @@ export default function AICoachScreen({
             </div>
 
             {/* Input Wrapper */}
-            <div className="px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] border-t border-white/10 bg-slate-900/80 backdrop-blur-xl shrink-0">
+            <div className="px-2 pt-1.5 pb-3 border-t border-white/10 bg-slate-900/80 backdrop-blur-xl shrink-0">
                 <div className="flex gap-2 items-center max-w-4xl mx-auto">
                     <div className="flex-1 relative group">
                         <div className="absolute inset-0 bg-indigo-500/5 rounded-2xl blur transition-opacity opacity-0 group-focus-within:opacity-100" />
